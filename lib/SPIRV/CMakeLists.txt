@@ -8,6 +8,7 @@ SET(SPIRV_SOURCES
   OCL21ToSPIRV.cpp
   OCLTypeToSPIRV.cpp
   OCLUtil.cpp
+  CMUtil.cpp
   SPIRVLowerBool.cpp
   SPIRVLowerConstExpr.cpp
   SPIRVLowerMemmove.cpp

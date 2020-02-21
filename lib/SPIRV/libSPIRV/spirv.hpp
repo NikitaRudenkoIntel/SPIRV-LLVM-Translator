@@ -41,6 +41,7 @@
 
 #ifndef spirv_HPP
 #define spirv_HPP
+#define __INTEL_EMBARGO__
 
 namespace spv {
 
@@ -62,6 +63,7 @@ enum SourceLanguage {
     SourceLanguageOpenCL_C = 3,
     SourceLanguageOpenCL_CPP = 4,
     SourceLanguageHLSL = 5,
+    SourceLanguageCM = 6,
     SourceLanguageMax = 0x7fffffff,
 };
 
@@ -126,6 +128,20 @@ enum ExecutionMode {
     ExecutionModeFinalizer = 34,
     ExecutionModeSubgroupSize = 35,
     ExecutionModeSubgroupsPerWorkgroup = 36,
+    ExecutionModeDenormPreserve = 4459,
+    ExecutionModeDenormFlushToZero = 4460,
+    ExecutionModeSignedZeroInfNanPreserve = 4461,
+    ExecutionModeRoundingModeRTE = 4462,
+    ExecutionModeRoundingModeRTZ = 4463,
+#ifdef __INTEL_EMBARGO__
+    ExecutionModeCMKernelSharedLocalMemorySizeINTEL = 5618,
+    ExecutionModeCMKernelNamedBarrierCountINTEL = 5619,
+    ExecutionModeCMKernelRegularBarrierCountINTEL = 5626,
+    ExecutionModeRoundingModeRTPINTEL = 5620,
+    ExecutionModeRoundingModeRTNINTEL = 5621,
+    ExecutionModeFloatALTINTEL = 5622,
+    ExecutionModeFloatIEEEINTEL = 5623,
+#endif // __INTEL_EMBARGO__
     ExecutionModeMax = 0x7fffffff,
 };
 
@@ -388,8 +404,13 @@ enum Decoration {
     DecorationPassthroughNV = 5250,
     DecorationViewportRelativeNV = 5252,
     DecorationSecondaryViewportRelativeNV = 5256,
+    DecorationCMStackCallINTEL = 5589,
     DecorationReferencedIndirectlyINTEL = 5602,
     DecorationUserSemantic = 5635,
+#ifdef __INTEL_EMBARGO__
+    DecorationCMKernelArgumentTypeINTEL = 5624,
+    DecorationCMKernelArgumentDescINTEL = 5625,
+#endif // __INTEL_EMBARGO__
     DecorationRegisterINTEL = 5825,
     DecorationMemoryINTEL = 5826,
     DecorationNumbanksINTEL = 5827,
@@ -666,6 +687,11 @@ enum Capability {
   CapabilityMultiView = 4439,
   CapabilityVariablePointersStorageBuffer = 4441,
   CapabilityVariablePointers = 4442,
+  CapabilityDenormPreserve = 4464,
+  CapabilityDenormFlushToZero = 4465,
+  CapabilitySignedZeroInfNanPreserve = 4466,
+  CapabilityRoundingModeRTE = 4467,
+  CapabilityRoundingModeRTZ = 4468,
   CapabilitySampleMaskOverrideCoverageNV = 5249,
   CapabilityGeometryShaderPassthroughNV = 5251,
   CapabilityShaderViewportIndexLayerNV = 5254,
@@ -678,6 +704,9 @@ enum Capability {
   CapabilitySubgroupImageMediaBlockIOINTEL = 5579,
   CapabilityFunctionPointersINTEL = 5603,
   CapabilityIndirectReferencesINTEL = 5604,
+#ifdef __INTEL_EMBARGO__
+  CapabilityCMKernelINTEL = 5617,
+#endif // __INTEL_EMBARGO__
   CapabilitySubgroupAvcMotionEstimationINTEL = 5696,
   CapabilitySubgroupAvcMotionEstimationIntraINTEL = 5697,
   CapabilitySubgroupAvcMotionEstimationChromaINTEL = 5698,

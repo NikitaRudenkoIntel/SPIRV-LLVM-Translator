@@ -301,8 +301,13 @@ protected:
   void validate() const override {
     SPIRVEntry::validate();
     CompType->validate();
-    assert(CompCount == 2 || CompCount == 3 || CompCount == 4 ||
-           CompCount == 8 || CompCount == 16);
+    SPIRVWord Ver = 0;
+    (void)Ver;
+    if (Module->getSourceLanguage(&Ver) == SourceLanguageOpenCL_C ||
+        Module->getSourceLanguage(&Ver) == SourceLanguageOpenCL_CPP) {
+      assert(CompCount == 2 || CompCount == 3 || CompCount == 4 ||
+             CompCount == 8 || CompCount == 16);
+    }
   }
 
 private:

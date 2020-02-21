@@ -1968,7 +1968,9 @@ protected:
       return;
     assert(getValueType(Vector1) == getValueType(Vector2));
     assert(Components.size() == Type->getVectorComponentCount());
+#if 0 // incorrect assert.
     assert(Components.size() > 1);
+#endif
   }
   SPIRVId Vector1;
   SPIRVId Vector2;

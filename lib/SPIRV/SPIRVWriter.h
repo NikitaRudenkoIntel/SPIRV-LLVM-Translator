@@ -157,8 +157,13 @@ private:
                                SPIRVExtInstSetKind *BuiltinSet = nullptr,
                                SPIRVWord *EntryPoint = nullptr,
                                SmallVectorImpl<std::string> *Dec = nullptr);
-  bool oclIsKernel(Function *F);
+  bool isKernel(Function *F);
   bool transOCLKernelMetadata();
+#ifdef __INTEL_EMBARGO__
+  void preprocessCMKernelMetadata(Module *M);
+  bool transCMKernelMetadata();
+  bool transCMAddressingMode();
+#endif // __INTEL_EMBARGO__
   SPIRVInstruction *transBuiltinToInst(const std::string &DemangledName,
                                        const std::string &MangledName,
                                        CallInst *CI, SPIRVBasicBlock *BB);

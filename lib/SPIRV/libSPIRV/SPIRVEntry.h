@@ -662,18 +662,42 @@ protected:
 };
 
 class SPIRVComponentExecutionModes {
-  typedef std::map<SPIRVExecutionModeKind, SPIRVExecutionMode *>
+  typedef std::multimap<SPIRVExecutionModeKind, SPIRVExecutionMode *>
       SPIRVExecutionModeMap;
+  typedef std::pair<SPIRVExecutionModeMap::const_iterator,
+                    SPIRVExecutionModeMap::const_iterator>
+      SPIRVExecutionModeRange;
 
 public:
   void addExecutionMode(SPIRVExecutionMode *ExecMode) {
-    ExecModes[ExecMode->getExecutionMode()] = ExecMode;
+    SPIRVExecutionModeKind EMK = ExecMode->getExecutionMode();
+    // There should not be more than 1 execution mode kind except the ones
+    // mentioned in SPV_KHR_float_controls.
+    bool isValid =
+        (ExecModes.count(EMK) == 0 || EMK == ExecutionModeDenormPreserve ||
+         EMK == ExecutionModeDenormFlushToZero ||
+         EMK == ExecutionModeSignedZeroInfNanPreserve ||
+         EMK == ExecutionModeRoundingModeRTE ||
+#ifdef __INTEL_EMBARGO__
+         EMK == ExecutionModeRoundingModeRTZ ||
+         EMK == ExecutionModeRoundingModeRTPINTEL ||
+         EMK == ExecutionModeRoundingModeRTNINTEL ||
+         EMK == ExecutionModeFloatALTINTEL ||
+         EMK == ExecutionModeFloatIEEEINTEL);
+#else
+         EMK == ExecutionModeRoundingModeRTZ);
+#endif // __INTEL_EMBARGO__
+    assert(isValid && "Duplicated execution mode");
+    ExecModes.emplace(EMK, ExecMode);
   }
   SPIRVExecutionMode *getExecutionMode(SPIRVExecutionModeKind EMK) const {
     auto Loc = ExecModes.find(EMK);
     if (Loc == ExecModes.end())
       return nullptr;
     return Loc->second;
+  }
+  SPIRVExecutionModeRange getExecutionModeRange(SPIRVExecutionModeKind EMK) const {
+      return ExecModes.equal_range(EMK);
   }
 
 protected:
