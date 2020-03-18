@@ -406,6 +406,7 @@ enum Decoration {
     DecorationSecondaryViewportRelativeNV = 5256,
     DecorationCMStackCallINTEL = 5589,
     DecorationReferencedIndirectlyINTEL = 5602,
+    DecorationSideEffectsINTEL = 5608,
     DecorationUserSemantic = 5635,
 #ifdef __INTEL_EMBARGO__
     DecorationCMKernelArgumentTypeINTEL = 5624,
@@ -707,6 +708,7 @@ enum Capability {
 #ifdef __INTEL_EMBARGO__
   CapabilityCMKernelINTEL = 5617,
 #endif // __INTEL_EMBARGO__
+  CapabilityAsmINTEL = 5606,
   CapabilitySubgroupAvcMotionEstimationINTEL = 5696,
   CapabilitySubgroupAvcMotionEstimationIntraINTEL = 5697,
   CapabilitySubgroupAvcMotionEstimationChromaINTEL = 5698,
@@ -1042,6 +1044,9 @@ enum Op {
   OpSubgroupImageMediaBlockWriteINTEL = 5581,
   OpFunctionPointerINTEL = 5600,
   OpFunctionPointerCallINTEL = 5601,
+  OpAsmTargetINTEL = 5609,
+  OpAsmINTEL = 5610,
+  OpAsmCallINTEL = 5611,
   OpVmeImageINTEL = 5699,
   OpTypeVmeImageINTEL = 5700,
   OpTypeAvcImePayloadINTEL = 5701,
