@@ -934,17 +934,13 @@ SPIRVValue *LLVMToSPIRV::transValueWithoutDecoration(Value *V,
       BVarInit = transValue(Init, nullptr);
     }
 
-    SPIRAddressSpace SPVAddrSpace;
-    // Map genx globals to openCL globals.
-    if (SrcLang == SourceLanguageCM)
-      SPVAddrSpace = SPIRAS_Global;
-    else
-      SPVAddrSpace = static_cast<SPIRAddressSpace>(Ty->getAddressSpace());
-
     auto BVar = static_cast<SPIRVVariable *>(BM->addVariable(
         transType(Ty), GV->isConstant(), transLinkageType(GV),
         (Init && !isa<UndefValue>(Init)) ? transValue(Init, nullptr) : nullptr,
-        GV->getName(), SPIRSPIRVAddrSpaceMap::map(SPVAddrSpace), nullptr));
+        GV->getName(),
+        SPIRSPIRVAddrSpaceMap::map(
+            static_cast<SPIRAddressSpace>(Ty->getAddressSpace())),
+        nullptr));
     mapValue(V, BVar);
     // Add volatile decorations.
     if (SrcLang == SourceLanguageCM) {
@@ -1853,7 +1849,7 @@ SPIRVValue *LLVMToSPIRV::transAsmCallINTEL(CallInst *CI, SPIRVBasicBlock *BB) {
 }
 
 #ifdef __INTEL_EMBARGO__
-bool LLVMToSPIRV::transCMAddressingMode() {
+bool LLVMToSPIRV::transCMMemoryModel() {
     StringRef TripleStr(M->getTargetTriple());
     assert(TripleStr.startswith("genx") && "Invalid triple");
     if (TripleStr.startswith("genx32"))
@@ -1862,6 +1858,7 @@ bool LLVMToSPIRV::transCMAddressingMode() {
         BM->setAddressingModel(AddressingModelPhysical64);
     // Physical addressing model requires Addresses capability
     BM->addCapability(CapabilityAddresses);
+    BM->setMemoryModel(MemoryModelSimple);
     return true;
 }
 #endif // __INTEL_EMBARGO__
@@ -2067,7 +2064,7 @@ bool LLVMToSPIRV::translate() {
     return false;
 #ifdef __INTEL_EMBARGO__
   if (BM->getSourceLanguage(nullptr) == SourceLanguageCM) {
-    if (!transCMAddressingMode())
+    if (!transCMMemoryModel())
       return false;
   } else
 #endif // __INTEL_EMBARGO__

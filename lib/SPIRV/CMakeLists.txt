@@ -1,4 +1,11 @@
+# __INTEL_EMBARGO_BEGIN__
+#   CMExport.h
+#   CMExport.cpp
+# __INTEL_EMBARGO_END__
 add_llvm_library(LLVMSPIRVLib
+#__INTEL_EMBARGO_BEGIN__
+  CMExport.cpp
+#__INTEL_EMBARGO_END__
   LLVMToSPIRVDbgTran.cpp
   Mangler/FunctionDescriptor.cpp
   Mangler/Mangler.cpp
