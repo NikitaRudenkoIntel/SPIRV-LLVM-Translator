@@ -246,8 +246,8 @@ template <> inline void SPIRVMap<SPIRVExecutionModeKind, SPIRVCapVec>::init() {
   ADD_VEC_INIT(ExecutionModeSignedZeroInfNanPreserve, {CapabilitySignedZeroInfNanPreserve});
   ADD_VEC_INIT(ExecutionModeRoundingModeRTE, {CapabilityRoundingModeRTE});
   ADD_VEC_INIT(ExecutionModeRoundingModeRTZ, {CapabilityRoundingModeRTZ});
-#ifdef __INTEL_EMBARGO__
   ADD_VEC_INIT(ExecutionModeCMKernelSharedLocalMemorySizeINTEL, {CapabilityCMKernelINTEL});
+#ifdef __INTEL_EMBARGO__
   ADD_VEC_INIT(ExecutionModeCMKernelNamedBarrierCountINTEL, {CapabilityCMKernelINTEL});
   ADD_VEC_INIT(ExecutionModeCMKernelRegularBarrierCountINTEL, {CapabilityCMKernelINTEL});
   ADD_VEC_INIT(ExecutionModeRoundingModeRTPINTEL, {CapabilityCMKernelINTEL});

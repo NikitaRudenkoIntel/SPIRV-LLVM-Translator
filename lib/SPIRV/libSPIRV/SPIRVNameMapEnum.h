@@ -128,8 +128,8 @@ template <> inline void SPIRVMap<ExecutionMode, std::string>::init() {
   add(ExecutionModeSignedZeroInfNanPreserve, "SignedZeroInfNanPreserve");
   add(ExecutionModeRoundingModeRTE, "RoundingModeRTE");
   add(ExecutionModeRoundingModeRTZ, "RoundingModeRTZ");
-#ifdef __INTEL_EMBARGO__
   add(ExecutionModeCMKernelSharedLocalMemorySizeINTEL, "CMKernelSharedLocalMemorySizeINTEL");
+#ifdef __INTEL_EMBARGO__
   add(ExecutionModeCMKernelNamedBarrierCountINTEL, "CMKernelNamedBarrierCountINTEL");
   add(ExecutionModeCMKernelRegularBarrierCountINTEL, "CMKernelRegularBarrierCountINTEL");
   add(ExecutionModeRoundingModeRTPINTEL, "RoundingModeRTPINTEL");

@@ -2823,7 +2823,6 @@ static bool transKernelArgTypeMedataFromString(LLVMContext *Ctx,
   return true;
 }
 
-#ifdef __INTEL_EMBARGO__
 bool SPIRVToLLVM::transCMKernelMetadata() {
   SPIRVWord SrcLangVer = 0;
   SourceLanguage Lang = BM->getSourceLanguage(&SrcLangVer);
@@ -2880,20 +2879,25 @@ bool SPIRVToLLVM::transCMKernelMetadata() {
         llvm::ValueAsMetadata::get(llvm::ConstantInt::get(I32Ty, 0)));
     KernelMD.push_back(llvm::MDNode::get(*Context, ArgInOutKinds));
     KernelMD.push_back(llvm::MDNode::get(*Context, ArgDescs));
+#ifdef __INTEL_EMBARGO__
     unsigned int NBarrierCnt = 0;
     if (auto EM =
             BF->getExecutionMode(ExecutionModeCMKernelNamedBarrierCountINTEL))
       NBarrierCnt = EM->getLiterals()[8];
     KernelMD.push_back(
         ConstantAsMetadata::get(ConstantInt::get(I32Ty, NBarrierCnt)));
+#endif // __INTEL_EMBARGO__
 
+#ifdef __INTEL_EMBARGO__
     unsigned int RegularBarrierCnt = 0;
     if (auto EM =
             BF->getExecutionMode(ExecutionModeCMKernelRegularBarrierCountINTEL))
       RegularBarrierCnt = EM->getLiterals()[9];
     KernelMD.push_back(
         ConstantAsMetadata::get(ConstantInt::get(I32Ty, RegularBarrierCnt)));
+#endif // __INTEL_EMBARGO__
 
+#ifdef __INTEL_EMBARGO__
       // Cm makes difference between default float control
       // and empty float control
       bool isCmFloatControl = false;
@@ -2929,11 +2933,13 @@ bool SPIRVToLLVM::transCMKernelMetadata() {
                                         std::to_string(FloatControl));
         F->addAttribute(AttributeList::FunctionIndex, Attr);
       }
+#endif // __INTEL_EMBARGO__
 
     llvm::MDNode *Node = MDNode::get(F->getContext(), KernelMD);
     KernelMDs->addOperand(Node);
 
 
+#ifdef __INTEL_EMBARGO__
     // Generate metadata for oclrt
     if (auto *EM = BF->getExecutionMode(ExecutionModeSubgroupSize)) {
       auto SIMDSize = EM->getLiterals()[0];
@@ -2942,17 +2948,15 @@ bool SPIRVToLLVM::transCMKernelMetadata() {
       F->addAttribute(AttributeList::FunctionIndex, Attr);
     }
   }
+#endif // __INTEL_EMBARGO__
   return true;
 }
-#endif // __INTEL_EMBARGO__
 
 bool SPIRVToLLVM::transKernelMetadata() {
-#ifdef __INTEL_EMBARGO__
   SPIRVWord SrcLangVer = 0;
   SourceLanguage Lang = BM->getSourceLanguage(&SrcLangVer);
   if (Lang == SourceLanguageCM)
     return transCMKernelMetadata();
-#endif // __INTEL_EMBARGO__
 
   for (unsigned I = 0, E = BM->getNumFunctions(); I != E; ++I) {
     SPIRVFunction *BF = BM->getFunction(I);

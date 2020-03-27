@@ -1953,13 +1953,13 @@ bool LLVMToSPIRV::transExecutionMode() {
         BF->addExecutionMode(BM->add(
             new SPIRVExecutionMode(BF, static_cast<ExecutionMode>(EMode), X)));
       } break;
-#ifdef __INTEL_EMBARGO__
       case spv::ExecutionModeCMKernelSharedLocalMemorySizeINTEL: {
         unsigned SLMSize;
         N.get(SLMSize);
         BF->addExecutionMode(new SPIRVExecutionMode(
             BF, static_cast<ExecutionMode>(EMode), SLMSize));
       } break;
+#ifdef __INTEL_EMBARGO__
       case spv::ExecutionModeCMKernelNamedBarrierCountINTEL: {
         unsigned NBarrierCnt;
         N.get(NBarrierCnt);
@@ -2043,8 +2043,6 @@ bool LLVMToSPIRV::transOCLKernelMetadata() {
   return true;
 }
 
-
-#ifdef __INTEL_EMBARGO__
 void LLVMToSPIRV::preprocessCMKernelMetadata(Module *M) {
   SPIRVMDBuilder B(*M);
   SPIRVMDWalker W(*M);
@@ -2069,10 +2067,12 @@ void LLVMToSPIRV::preprocessCMKernelMetadata(Module *M) {
       continue;
     Function *Kernel = mdconst::dyn_extract<Function>(KernelMD->getOperand(0));
 
+#ifdef __INTEL_EMBARGO__
     // Workaround for OCL 2.0 producer not using SPIR_KERNEL calling convention
 #if SPCV_RELAX_KERNEL_CALLING_CONV
     Kernel->setCallingConv(CallingConv::SPIR_KERNEL);
 #endif
+#endif // __INTEL_EMBARGO__
 
     // get the slm-size info
     if (KernelMD->getNumOperands() > genx::KernelMDOp::SLMSize) {
@@ -2087,6 +2087,7 @@ void LLVMToSPIRV::preprocessCMKernelMetadata(Module *M) {
         }
     }
 
+#ifdef __INTEL_EMBARGO__
     // Add CM float control execution modes
     // RoundMode and FloatMode are always same for all types in Cm
     // While Denorm could be different for double, float and half
@@ -2112,7 +2113,9 @@ void LLVMToSPIRV::preprocessCMKernelMetadata(Module *M) {
                 .done();
           });
     }
+#endif // __INTEL_EMBARGO__
 
+#ifdef __INTEL_EMBARGO__
     // Add oclrt attribute if any.
     if (Attrs.hasFnAttribute("oclrt")) {
       SPIRVWord SIMDSize = 0;
@@ -2125,9 +2128,9 @@ void LLVMToSPIRV::preprocessCMKernelMetadata(Module *M) {
           .add(SIMDSize)
           .done();
     }
+#endif // __INTEL_EMBARGO__
   }
 }
-#endif // __INTEL_EMBARGO__
 
 #ifdef __INTEL_EMBARGO__
 bool LLVMToSPIRV::transCMKernelMetadata() {

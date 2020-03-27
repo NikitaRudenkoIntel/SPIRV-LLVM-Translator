@@ -133,8 +133,8 @@ enum ExecutionMode {
     ExecutionModeSignedZeroInfNanPreserve = 4461,
     ExecutionModeRoundingModeRTE = 4462,
     ExecutionModeRoundingModeRTZ = 4463,
-#ifdef __INTEL_EMBARGO__
     ExecutionModeCMKernelSharedLocalMemorySizeINTEL = 5618,
+#ifdef __INTEL_EMBARGO__
     ExecutionModeCMKernelNamedBarrierCountINTEL = 5619,
     ExecutionModeCMKernelRegularBarrierCountINTEL = 5626,
     ExecutionModeRoundingModeRTPINTEL = 5620,
@@ -705,10 +705,8 @@ enum Capability {
   CapabilitySubgroupImageMediaBlockIOINTEL = 5579,
   CapabilityFunctionPointersINTEL = 5603,
   CapabilityIndirectReferencesINTEL = 5604,
-#ifdef __INTEL_EMBARGO__
-  CapabilityCMKernelINTEL = 5617,
-#endif // __INTEL_EMBARGO__
   CapabilityAsmINTEL = 5606,
+  CapabilityCMKernelINTEL = 5617,
   CapabilitySubgroupAvcMotionEstimationINTEL = 5696,
   CapabilitySubgroupAvcMotionEstimationIntraINTEL = 5697,
   CapabilitySubgroupAvcMotionEstimationChromaINTEL = 5698,
