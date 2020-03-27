@@ -673,6 +673,7 @@ public:
     SPIRVExecutionModeKind EMK = ExecMode->getExecutionMode();
     // There should not be more than 1 execution mode kind except the ones
     // mentioned in SPV_KHR_float_controls.
+#ifndef NDEBUG
     bool isValid =
         (ExecModes.count(EMK) == 0 || EMK == ExecutionModeDenormPreserve ||
          EMK == ExecutionModeDenormFlushToZero ||
@@ -687,6 +688,7 @@ public:
 #else
          EMK == ExecutionModeRoundingModeRTZ);
 #endif // __INTEL_EMBARGO__
+#endif // !NDEBUG
     assert(isValid && "Duplicated execution mode");
     ExecModes.emplace(EMK, ExecMode);
   }
