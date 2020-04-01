@@ -22,25 +22,32 @@
 #include "llvm/Bitcode/BitcodeWriter.h"
 #include "SPIRVInternal.h"
 
-int spirv_read_verify_module(char *pIn, size_t InSz, char **ppOut, size_t *pOutSz, char **ppErr, size_t *pErrSz) {
+int spirv_read_verify_module(const char *pIn, size_t InSz,
+                             void (*OutSaver)(const char *pOut, size_t OutSize, void *OutUserData),
+                             void *OutUserData,
+                             void (*ErrSaver)(const char *pErrMsg, void *ErrUserData),
+                             void *ErrUserData) {
   LLVMContext Context;
   StringRef SpirvInput = StringRef(pIn, InSz);
   std::istringstream IS(SpirvInput);
-  std::string ErrMsg;
 
   std::unique_ptr<llvm::Module> M;
   {
     llvm::Module *SpirM;
-    bool ok = llvm::readSpirv(Context, IS, SpirM, ErrMsg);
-    if (!ok) {
-      llvm::errs() << "spirv_read_verify: readSpirv failed\n";
-      return 0;
+    std::string ErrMsg;
+    // This returns true on success...
+    bool Status = llvm::readSpirv(Context, IS, SpirM, ErrMsg);
+    if (!Status) {
+      std::ostringstream OSS;
+      OSS << "spirv_read_verify: readSpirv failed: " << ErrMsg;
+      ErrSaver(OSS.str().c_str(), ErrUserData);
+      return -1;
     }
 
-    ok = llvm::verifyModule(*SpirM);
-    if (ok) {
-      llvm::errs() << "spirv_read_verify: verify Module failed\n";
-      return 0;
+    Status = llvm::verifyModule(*SpirM);
+    if (Status) {
+      ErrSaver("spirv_read_verify: verify Module failed", ErrUserData);
+      return -1;
     }
 
     M.reset(SpirM);
@@ -52,25 +59,7 @@ int spirv_read_verify_module(char *pIn, size_t InSz, char **ppOut, size_t *pOutS
 
   assert(CloneBuffer.size() > 0);
 
-  *pOutSz = CloneBuffer.size();
-  *ppOut = static_cast<char *>(::operator new(*pOutSz));
-  std::copy(CloneBuffer.begin(), CloneBuffer.end(), *ppOut);
-
-  llvm::MemoryBufferRef BufferRef(llvm::StringRef(*ppOut, *pOutSz), "Deserialized SPIRV Module");
-  auto ExpModule = llvm::parseBitcodeFile(BufferRef, Context);
-
-  if (!ExpModule) {
-    auto E = ExpModule.takeError();
-    llvm::errs() << "Can not parse Module back just after serializing: " << E << "\n";
-    return 0;
-  }
-
-  if (!ErrMsg.empty()) {
-    *pErrSz = ErrMsg.size();
-    *ppErr = static_cast<char *>(::operator new(*pErrSz));
-    std::copy(ErrMsg.begin(), ErrMsg.end(), *ppErr);
-  }
-
-  return 1;
+  OutSaver(CloneBuffer.data(), CloneBuffer.size(), OutUserData);
+  return 0;
 }
 

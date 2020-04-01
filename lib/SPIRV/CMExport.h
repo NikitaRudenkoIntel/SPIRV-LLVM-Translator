@@ -18,7 +18,13 @@
   #define __EXPORT__ __attribute__((visibility("default")))
 #endif
 
-// zero result means failure
-extern "C" __EXPORT__ int spirv_read_verify_module(char *pin, size_t insz, char **ppout, size_t *poutsz, char **pperr, size_t *perrsz);
+// Returns zero on success.
+extern "C" __EXPORT__
+int spirv_read_verify_module(const char *pIn, size_t InSz,
+                             void (*OutSaver)(const char *pOut, size_t OutSize, void *OutUserData),
+                             void *OutUserData,
+                             void (*ErrSaver)(const char *pErrMsg, void *ErrUserData),
+                             void *ErrUserData);
+
 
 #endif // SPIRV_CMEXPORT_H
