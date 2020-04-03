@@ -1976,8 +1976,8 @@ bool LLVMToSPIRV::transExecutionMode() {
 
       case spv::ExecutionModeRoundingModeRTPINTEL:
       case spv::ExecutionModeRoundingModeRTNINTEL:
-      case spv::ExecutionModeFloatALTINTEL:
-      case spv::ExecutionModeFloatIEEEINTEL:
+      case spv::ExecutionModeFloatingPointModeALTINTEL:
+      case spv::ExecutionModeFloatingPointModeIEEEINTEL:
 #endif // __INTEL_EMBARGO__
       case spv::ExecutionModeDenormPreserve:
       case spv::ExecutionModeDenormFlushToZero:

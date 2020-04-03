@@ -473,8 +473,8 @@ void SPIRVExecutionMode::decode(std::istream &I) {
   case ExecutionModeCMKernelRegularBarrierCountINTEL:
   case ExecutionModeRoundingModeRTPINTEL:
   case ExecutionModeRoundingModeRTNINTEL:
-  case ExecutionModeFloatALTINTEL:
-  case ExecutionModeFloatIEEEINTEL:
+  case ExecutionModeFloatingPointModeALTINTEL:
+  case ExecutionModeFloatingPointModeIEEEINTEL:
 #endif // __INTEL_EMBARGO__
   case ExecutionModeSubgroupSize:
     WordLiterals.resize(1);

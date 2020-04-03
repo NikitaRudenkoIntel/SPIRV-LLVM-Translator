@@ -91,8 +91,8 @@ template <> inline void SPIRVMap<CmDenormMode, spv::ExecutionMode>::init() {
   add(Preserve, ExecutionModeDenormPreserve);
 }
 template <> inline void SPIRVMap<CmFloatMode, spv::ExecutionMode>::init() {
-  add(IEEE, ExecutionModeFloatIEEEINTEL);
-  add(ALT, ExecutionModeFloatALTINTEL);
+  add(IEEE, ExecutionModeFloatingPointModeIEEEINTEL);
+  add(ALT, ExecutionModeFloatingPointModeALTINTEL);
 }
 #endif // __INTEL_EMBARGO__
 template <> inline void SPIRVMap<CmFloatType, unsigned>::init() {
