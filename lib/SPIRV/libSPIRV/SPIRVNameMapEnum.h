@@ -131,14 +131,14 @@ template <> inline void SPIRVMap<ExecutionMode, std::string>::init() {
   add(ExecutionModeSignedZeroInfNanPreserve, "SignedZeroInfNanPreserve");
   add(ExecutionModeRoundingModeRTE, "RoundingModeRTE");
   add(ExecutionModeRoundingModeRTZ, "RoundingModeRTZ");
-#ifdef __INTEL_EMBARGO__
   add(ExecutionModeCMKernelSharedLocalMemorySizeINTEL, "CMKernelSharedLocalMemorySizeINTEL");
+#ifdef __INTEL_EMBARGO__
   add(ExecutionModeCMKernelNamedBarrierCountINTEL, "CMKernelNamedBarrierCountINTEL");
   add(ExecutionModeCMKernelRegularBarrierCountINTEL, "CMKernelRegularBarrierCountINTEL");
   add(ExecutionModeRoundingModeRTPINTEL, "RoundingModeRTPINTEL");
   add(ExecutionModeRoundingModeRTNINTEL, "RoundingModeRTNINTEL");
-  add(ExecutionModeFloatALTINTEL, "FloatALTINTEL");
-  add(ExecutionModeFloatIEEEINTEL, "FloatIEEEINTEL");
+  add(ExecutionModeFloatingPointModeALTINTEL, "FloatingPointModeALTINTEL");
+  add(ExecutionModeFloatingPointModeIEEEINTEL, "FloatingPointModeIEEEINTEL");
 #endif // __INTEL_EMBARGO__
 }
 SPIRV_DEF_NAMEMAP(ExecutionMode, SPIRVExecutionModeNameMap)
@@ -369,6 +369,7 @@ template <> inline void SPIRVMap<Decoration, std::string>::init() {
 #ifdef __INTEL_EMBARGO__
   add(DecorationCMKernelArgumentTypeINTEL, "CMKernelArgumentTypeINTEL");
   add(DecorationCMKernelArgumentDescINTEL, "CMKernelArgumentDescINTEL");
+  add(DecorationCMStackCallINTEL, "DecorationCMStackCallINTEL");
 #endif // __INTEL_EMBARGO__
 }
 SPIRV_DEF_NAMEMAP(Decoration, SPIRVDecorationNameMap)

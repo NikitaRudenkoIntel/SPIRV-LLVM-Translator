@@ -686,8 +686,8 @@ public:
          EMK == ExecutionModeRoundingModeRTZ ||
          EMK == ExecutionModeRoundingModeRTPINTEL ||
          EMK == ExecutionModeRoundingModeRTNINTEL ||
-         EMK == ExecutionModeFloatALTINTEL ||
-         EMK == ExecutionModeFloatIEEEINTEL);
+         EMK == ExecutionModeFloatingPointModeALTINTEL ||
+         EMK == ExecutionModeFloatingPointModeIEEEINTEL);
 #else
          EMK == ExecutionModeRoundingModeRTZ);
 #endif // __INTEL_EMBARGO__
