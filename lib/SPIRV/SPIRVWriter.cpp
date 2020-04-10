@@ -2066,6 +2066,7 @@ bool LLVMToSPIRV::translate() {
   if (BM->getSourceLanguage(nullptr) == SourceLanguageCM) {
     if (!transCMMemoryModel())
       return false;
+    BM->addExtension(ExtensionID::SPV_INTEL_cm);
   } else
 #endif // __INTEL_EMBARGO__
   if (!transAddressingMode())
