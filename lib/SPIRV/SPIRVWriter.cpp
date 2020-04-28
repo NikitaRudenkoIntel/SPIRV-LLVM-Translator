@@ -2108,7 +2108,6 @@ bool LLVMToSPIRV::translate() {
   }
 #ifdef __INTEL_EMBARGO__
   else if (BM->getSourceLanguage(&Ver) == SourceLanguageCM) {
-    preprocessCMKernelMetadata(M);
     if (!transCMKernelMetadata())
       return false;
   }
@@ -2314,95 +2313,6 @@ bool LLVMToSPIRV::transOCLKernelMetadata() {
     }
   }
   return true;
-}
-
-void LLVMToSPIRV::preprocessCMKernelMetadata(Module *M) {
-  SPIRVMDBuilder B(*M);
-  SPIRVMDWalker W(*M);
-  B.addNamedMD(kSPIRVMD::Source)
-      .addOp()
-      .add(spv::SourceLanguageCM)
-      .add(36) // version
-      .done();
-
-  // Add entry points
-  auto EP = B.addNamedMD(kSPIRVMD::EntryPoint);
-  auto EM = B.addNamedMD(kSPIRVMD::ExecutionMode);
-
-  // Add execution mode
-  NamedMDNode *KernelMDs = M->getNamedMetadata(SPIR_MD_CM_KERNELS);
-  if (!KernelMDs)
-    return;
-
-  for (unsigned I = 0, E = KernelMDs->getNumOperands(); I < E; ++I) {
-    MDNode *KernelMD = KernelMDs->getOperand(I);
-    if (KernelMD->getNumOperands() == 0)
-      continue;
-    Function *Kernel = mdconst::dyn_extract<Function>(KernelMD->getOperand(0));
-
-#ifdef __INTEL_EMBARGO__
-    // Workaround for OCL 2.0 producer not using SPIR_KERNEL calling convention
-#if SPCV_RELAX_KERNEL_CALLING_CONV
-    Kernel->setCallingConv(CallingConv::SPIR_KERNEL);
-#endif
-#endif // __INTEL_EMBARGO__
-
-    // get the slm-size info
-    if (KernelMD->getNumOperands() > genx::KernelMDOp::SLMSize) {
-      if (auto VM = dyn_cast<ValueAsMetadata>(KernelMD->getOperand(genx::KernelMDOp::SLMSize)))
-        if (auto V = dyn_cast<ConstantInt>(VM->getValue())) {
-          auto SLMSize = V->getZExtValue();
-          EM.addOp()
-              .add(Kernel)
-              .add(spv::ExecutionModeCMKernelSharedLocalMemorySizeINTEL)
-              .add(SLMSize)
-              .done();
-        }
-    }
-
-#ifdef __INTEL_EMBARGO__
-    // Add CM float control execution modes
-    // RoundMode and FloatMode are always same for all types in Cm
-    // While Denorm could be different for double, float and half
-    auto Attrs = Kernel->getAttributes();
-    if (Attrs.hasFnAttribute("CMFloatControl")) {
-      SPIRVWord Mode = 0;
-      Attrs.getAttribute(AttributeList::FunctionIndex, "CMFloatControl")
-          .getValueAsString()
-          .getAsInteger(0, Mode);
-      spv::ExecutionMode ExecRoundMode =
-          CMRoundModeExecModeMap::map(CMUtil::getRoundMode(Mode));
-      spv::ExecutionMode ExecFloatMode =
-          CMFloatModeExecModeMap::map(CMUtil::getFloatMode(Mode));
-      CMFloatTypeSizeMap::foreach (
-          [&](CmFloatType FloatType, unsigned TargetWidth) {
-            EM.addOp().add(Kernel).add(ExecRoundMode).add(TargetWidth).done();
-            EM.addOp().add(Kernel).add(ExecFloatMode).add(TargetWidth).done();
-            EM.addOp()
-                .add(Kernel)
-                .add(CMDenormModeExecModeMap::map(
-                    getDenormPreserve(Mode, FloatType)))
-                .add(TargetWidth)
-                .done();
-          });
-    }
-#endif // __INTEL_EMBARGO__
-
-#ifdef __INTEL_EMBARGO__
-    // Add oclrt attribute if any.
-    if (Attrs.hasFnAttribute("oclrt")) {
-      SPIRVWord SIMDSize = 0;
-      Attrs.getAttribute(AttributeList::FunctionIndex, "oclrt")
-          .getValueAsString()
-          .getAsInteger(0, SIMDSize);
-      EM.addOp()
-          .add(Kernel)
-          .add(spv::ExecutionModeSubgroupSize)
-          .add(SIMDSize)
-          .done();
-    }
-#endif // __INTEL_EMBARGO__
-  }
 }
 
 #ifdef __INTEL_EMBARGO__
