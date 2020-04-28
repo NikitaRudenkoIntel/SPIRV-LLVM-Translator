@@ -42,6 +42,8 @@
 #include "SPIRVInternal.h"
 #include "SPIRVMDBuilder.h"
 #include "SPIRVMDWalker.h"
+#include "CMUtil.h"
+#include "GenXKernelMDOps.h"
 
 #include "llvm/ADT/Triple.h"
 #include "llvm/IR/IRBuilder.h"
@@ -69,6 +71,7 @@ public:
 
   bool runOnModule(Module &M) override;
   void visit(Module *M);
+  void preprocessCMMetadata(Module *M);
 
   static char ID;
 
@@ -83,16 +86,112 @@ bool PreprocessMetadata::runOnModule(Module &Module) {
   M = &Module;
   Ctx = &M->getContext();
 
-  LLVM_DEBUG(dbgs() << "Enter PreprocessMetadata:\n");
-  visit(M);
+  if (StringRef(M->getTargetTriple()).startswith("genx")) {
+    LLVM_DEBUG(dbgs() << "Enter TransCMMD:\n");
+    preprocessCMMetadata(M);
+    LLVM_DEBUG(dbgs() << "After TransCMMD:\n" << *M);
+  } else {
+    LLVM_DEBUG(dbgs() << "Enter PreprocessMetadata:\n");
+    visit(M);
+    LLVM_DEBUG(dbgs() << "After PreprocessMetadata:\n" << *M);
+  }
 
-  LLVM_DEBUG(dbgs() << "After PreprocessMetadata:\n" << *M);
   std::string Err;
   raw_string_ostream ErrorOS(Err);
   if (verifyModule(*M, &ErrorOS)) {
     LLVM_DEBUG(errs() << "Fails to verify module: " << ErrorOS.str());
   }
   return true;
+}
+
+void PreprocessMetadata::preprocessCMMetadata(Module *M) {
+  SPIRVMDBuilder B(*M);
+  SPIRVMDWalker W(*M);
+  B.addNamedMD(kSPIRVMD::Source)
+      .addOp()
+      .add(spv::SourceLanguageCM)
+      .add(36) // version
+      .done();
+
+  // Add entry points
+  auto EP = B.addNamedMD(kSPIRVMD::EntryPoint);
+  auto EM = B.addNamedMD(kSPIRVMD::ExecutionMode);
+
+  // Add execution mode
+  NamedMDNode *KernelMDs = M->getNamedMetadata(SPIR_MD_CM_KERNELS);
+  if (!KernelMDs)
+    return;
+
+  for (unsigned I = 0, E = KernelMDs->getNumOperands(); I < E; ++I) {
+    MDNode *KernelMD = KernelMDs->getOperand(I);
+    if (KernelMD->getNumOperands() == 0)
+      continue;
+    Function *Kernel = mdconst::dyn_extract<Function>(KernelMD->getOperand(0));
+
+#ifdef __INTEL_EMBARGO__
+    // Workaround for OCL 2.0 producer not using SPIR_KERNEL calling convention
+#if SPCV_RELAX_KERNEL_CALLING_CONV
+    Kernel->setCallingConv(CallingConv::SPIR_KERNEL);
+#endif
+#endif // __INTEL_EMBARGO__
+
+    // get the slm-size info
+    if (KernelMD->getNumOperands() > genx::KernelMDOp::SLMSize) {
+      if (auto VM = dyn_cast<ValueAsMetadata>(
+              KernelMD->getOperand(genx::KernelMDOp::SLMSize)))
+        if (auto V = dyn_cast<ConstantInt>(VM->getValue())) {
+          auto SLMSize = V->getZExtValue();
+          EM.addOp()
+              .add(Kernel)
+              .add(spv::ExecutionModeCMKernelSharedLocalMemorySizeINTEL)
+              .add(SLMSize)
+              .done();
+        }
+    }
+
+#ifdef __INTEL_EMBARGO__
+    // Add CM float control execution modes
+    // RoundMode and FloatMode are always same for all types in Cm
+    // While Denorm could be different for double, float and half
+    auto Attrs = Kernel->getAttributes();
+    if (Attrs.hasFnAttribute("CMFloatControl")) {
+      SPIRVWord Mode = 0;
+      Attrs.getAttribute(AttributeList::FunctionIndex, "CMFloatControl")
+          .getValueAsString()
+          .getAsInteger(0, Mode);
+      spv::ExecutionMode ExecRoundMode =
+          CMRoundModeExecModeMap::map(CMUtil::getRoundMode(Mode));
+      spv::ExecutionMode ExecFloatMode =
+          CMFloatModeExecModeMap::map(CMUtil::getFloatMode(Mode));
+      CMFloatTypeSizeMap::foreach (
+          [&](CmFloatType FloatType, unsigned TargetWidth) {
+            EM.addOp().add(Kernel).add(ExecRoundMode).add(TargetWidth).done();
+            EM.addOp().add(Kernel).add(ExecFloatMode).add(TargetWidth).done();
+            EM.addOp()
+                .add(Kernel)
+                .add(CMDenormModeExecModeMap::map(
+                    getDenormPreserve(Mode, FloatType)))
+                .add(TargetWidth)
+                .done();
+          });
+    }
+#endif // __INTEL_EMBARGO__
+
+#ifdef __INTEL_EMBARGO__
+    // Add oclrt attribute if any.
+    if (Attrs.hasFnAttribute("oclrt")) {
+      SPIRVWord SIMDSize = 0;
+      Attrs.getAttribute(AttributeList::FunctionIndex, "oclrt")
+          .getValueAsString()
+          .getAsInteger(0, SIMDSize);
+      EM.addOp()
+          .add(Kernel)
+          .add(spv::ExecutionModeSubgroupSize)
+          .add(SIMDSize)
+          .done();
+    }
+#endif // __INTEL_EMBARGO__
+  }
 }
 
 void PreprocessMetadata::visit(Module *M) {

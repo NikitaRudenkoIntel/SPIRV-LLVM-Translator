@@ -161,7 +161,6 @@ private:
                                SmallVectorImpl<std::string> *Dec = nullptr);
   bool isKernel(Function *F);
   bool transOCLKernelMetadata();
-  void preprocessCMKernelMetadata(Module *M);
 #ifdef __INTEL_EMBARGO__
   bool transCMKernelMetadata();
   bool transCMMemoryModel();
