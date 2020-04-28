@@ -137,15 +137,13 @@ enum ExecutionMode {
     ExecutionModeSignedZeroInfNanPreserve = 4461,
     ExecutionModeRoundingModeRTE = 4462,
     ExecutionModeRoundingModeRTZ = 4463,
-    ExecutionModeCMKernelSharedLocalMemorySizeINTEL = 5618,
-#ifdef __INTEL_EMBARGO__
-    ExecutionModeCMKernelNamedBarrierCountINTEL = 5619,
-    ExecutionModeCMKernelRegularBarrierCountINTEL = 5626,
+    ExecutionModeSharedLocalMemorySizeINTEL = 5618,
+    ExecutionModeNamedBarrierCountINTEL = 5619,
+    ExecutionModeRegularBarrierCountINTEL = 5626,
     ExecutionModeRoundingModeRTPINTEL = 5620,
     ExecutionModeRoundingModeRTNINTEL = 5621,
     ExecutionModeFloatingPointModeALTINTEL = 5622,
     ExecutionModeFloatingPointModeIEEEINTEL = 5623,
-#endif // __INTEL_EMBARGO__
     ExecutionModeMax = 0x7fffffff,
 };
 
@@ -411,11 +409,9 @@ enum Decoration {
     DecorationReferencedIndirectlyINTEL = 5602,
     DecorationSideEffectsINTEL = 5608,
     DecorationUserSemantic = 5635,
-#ifdef __INTEL_EMBARGO__
-    DecorationCMKernelArgumentTypeINTEL = 5624,
-    DecorationCMKernelArgumentDescINTEL = 5625,
+    DecorationArgumentTypeINTEL = 5624,
+    DecorationArgumentDescINTEL = 5625,
     DecorationCMStackCallINTEL = 5627,
-#endif // __INTEL_EMBARGO__
     DecorationRegisterINTEL = 5825,
     DecorationMemoryINTEL = 5826,
     DecorationNumbanksINTEL = 5827,

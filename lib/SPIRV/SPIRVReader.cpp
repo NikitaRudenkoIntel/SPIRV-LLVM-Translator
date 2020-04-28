@@ -1521,9 +1521,9 @@ Value *SPIRVToLLVM::transValueWithoutDecoration(SPIRVValue *BV, Function *F,
     if (BM->getSourceLanguage(nullptr) == SourceLanguageCM) {
       SPIRVWord Offset;
       if (BVar->hasDecorate(DecorationOffset, 0, &Offset))
-        LVar->addAttribute("genx_byte_offset", utostr(Offset));
+        LVar->addAttribute(kCMMetadata::GenXByteOffset, utostr(Offset));
       if (BVar->hasDecorate(DecorationVolatile))
-        LVar->addAttribute("genx_volatile");
+        LVar->addAttribute(kCMMetadata::GenXVolatile);
     }
 
     SPIRVBuiltinVariableKind BVKind;
@@ -2367,7 +2367,7 @@ Function *SPIRVToLLVM::transFunction(SPIRVFunction *BF) {
     F->addFnAttr("referenced-indirectly");
 
   if (IsKernel)
-    F->addFnAttr("CMGenxMain");
+    F->addFnAttr(kCMMetadata::CMGenXMain);
 
   if (!F->isIntrinsic()) {
     F->setCallingConv(IsKernel ? CallingConv::SPIR_KERNEL
@@ -2378,8 +2378,9 @@ Function *SPIRVToLLVM::transFunction(SPIRVFunction *BF) {
                        [&](Attribute::AttrKind Attr) { F->addFnAttr(Attr); });
   }
   SPIRVWord CMStackCall = 0;
-  if (BF->hasDecorate(DecorationCMStackCallINTEL, 0, &CMStackCall))
-    F->addFnAttr("CMStackCall");
+  if (BF->hasDecorate(DecorationCMStackCallINTEL))
+    F->addFnAttr(kCMMetadata::CMStackCall);
+
 
   for (Function::arg_iterator I = F->arg_begin(), E = F->arg_end(); I != E;
        ++I) {
@@ -3236,10 +3237,19 @@ static bool transKernelArgTypeMedataFromString(LLVMContext *Ctx,
 }
 
 bool SPIRVToLLVM::transCMKernelMetadata() {
+  using namespace CMUtil;
   SPIRVWord SrcLangVer = 0;
   SourceLanguage Lang = BM->getSourceLanguage(&SrcLangVer);
   assert(Lang == SourceLanguageCM);
-  NamedMDNode *KernelMDs = M->getOrInsertNamedMetadata(SPIR_MD_CM_KERNELS);
+  NamedMDNode *KernelMDs =
+      M->getOrInsertNamedMetadata(kCMMetadata::GenXKernels);
+
+  NamedMDNode *MemoryModelMD =
+      M->getOrInsertNamedMetadata(kSPIRVMD::MemoryModel);
+  MemoryModelMD->addOperand(
+      getMDTwoInt(Context, static_cast<unsigned>(BM->getAddressingModel()),
+                  static_cast<unsigned>(BM->getMemoryModel())));
+
   for (unsigned I = 0, E = BM->getNumFunctions(); I != E; ++I) {
     SPIRVFunction *BF = BM->getFunction(I);
     Function *F = static_cast<Function *>(getTranslatedValue(BF));
@@ -3266,7 +3276,7 @@ bool SPIRVToLLVM::transCMKernelMetadata() {
     for (size_t I = 0, E = BF->getNumArguments(); I != E; ++I) {
       auto BA = BF->getArgument(I);
       SPIRVWord Kind = 0;
-      BA->hasDecorate(DecorationCMKernelArgumentTypeINTEL, 0, &Kind);
+      BA->hasDecorate(DecorationArgumentTypeINTEL, 0, &Kind);
       ArgKinds.push_back(
           llvm::ValueAsMetadata::get(llvm::ConstantInt::get(I32Ty, Kind)));
       ArgInOutKinds.push_back(
@@ -3274,7 +3284,7 @@ bool SPIRVToLLVM::transCMKernelMetadata() {
 
       string ArgDesc;
       SPIRVWord ID = 0;
-      if (BA->hasDecorate(DecorationCMKernelArgumentDescINTEL, 0, &ID))
+      if (BA->hasDecorate(DecorationArgumentDescINTEL, 0, &ID))
         ArgDesc = static_cast<SPIRVString *>(BM->getEntry(ID))->getStr();
       ArgDescs.push_back(llvm::MDString::get(F->getContext(), ArgDesc));
     }
@@ -3282,7 +3292,7 @@ bool SPIRVToLLVM::transCMKernelMetadata() {
     // Generate metadata for slm-size
     unsigned int SLMSize = 0;
     if (auto EM = BF->getExecutionMode(
-            ExecutionModeCMKernelSharedLocalMemorySizeINTEL))
+            ExecutionModeSharedLocalMemorySizeINTEL))
       SLMSize = EM->getLiterals()[0];
     KernelMD.push_back(
         ConstantAsMetadata::get(ConstantInt::get(I32Ty, SLMSize)));
@@ -3294,8 +3304,8 @@ bool SPIRVToLLVM::transCMKernelMetadata() {
 #ifdef __INTEL_EMBARGO__
     unsigned int NBarrierCnt = 0;
     if (auto EM =
-            BF->getExecutionMode(ExecutionModeCMKernelNamedBarrierCountINTEL))
-      NBarrierCnt = EM->getLiterals()[8];
+            BF->getExecutionMode(ExecutionModeNamedBarrierCountINTEL))
+      NBarrierCnt = EM->getLiterals()[0];
     KernelMD.push_back(
         ConstantAsMetadata::get(ConstantInt::get(I32Ty, NBarrierCnt)));
 #endif // __INTEL_EMBARGO__
@@ -3303,13 +3313,12 @@ bool SPIRVToLLVM::transCMKernelMetadata() {
 #ifdef __INTEL_EMBARGO__
     unsigned int RegularBarrierCnt = 0;
     if (auto EM =
-            BF->getExecutionMode(ExecutionModeCMKernelRegularBarrierCountINTEL))
-      RegularBarrierCnt = EM->getLiterals()[9];
+            BF->getExecutionMode(ExecutionModeRegularBarrierCountINTEL))
+      RegularBarrierCnt = EM->getLiterals()[0];
     KernelMD.push_back(
         ConstantAsMetadata::get(ConstantInt::get(I32Ty, RegularBarrierCnt)));
 #endif // __INTEL_EMBARGO__
 
-#ifdef __INTEL_EMBARGO__
       // Cm makes difference between default float control
       // and empty float control
       bool isCmFloatControl = false;
@@ -3341,26 +3350,24 @@ bool SPIRVToLLVM::transCMKernelMetadata() {
             }
           });
       if (isCmFloatControl) {
-        Attribute Attr = Attribute::get(*Context, "CMFloatControl",
+        Attribute Attr = Attribute::get(*Context, kCMMetadata::CMFloatControl,
                                         std::to_string(FloatControl));
         F->addAttribute(AttributeList::FunctionIndex, Attr);
       }
-#endif // __INTEL_EMBARGO__
 
     llvm::MDNode *Node = MDNode::get(F->getContext(), KernelMD);
     KernelMDs->addOperand(Node);
-
 
 #ifdef __INTEL_EMBARGO__
     // Generate metadata for oclrt
     if (auto *EM = BF->getExecutionMode(ExecutionModeSubgroupSize)) {
       auto SIMDSize = EM->getLiterals()[0];
       Attribute Attr =
-          Attribute::get(*Context, "oclrt", std::to_string(SIMDSize));
+          Attribute::get(*Context, kCMMetadata::OCLRuntime, std::to_string(SIMDSize));
       F->addAttribute(AttributeList::FunctionIndex, Attr);
     }
-  }
 #endif // __INTEL_EMBARGO__
+  }
   return true;
 }
 

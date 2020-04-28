@@ -1,4 +1,4 @@
-//===- CMUtil.cpp - Converts CM float control bits -*- C++ -*-===//
+//===- CMUtil.cpp -    CM Utilities implementation -*- C++ -*-===//
 //
 //                     The LLVM/SPIR-V Translator
 //
@@ -11,6 +11,10 @@
 //===----------------------------------------------------------------------===//
 
 #include "CMUtil.h"
+#include "SPIRVInternal.h"
+#include "llvm/IR/Metadata.h"
+using namespace CMUtil;
+using namespace SPIRV;
 
 enum CmFloatControl {
   CM_RTE = 0,      // Round to nearest or even
@@ -81,6 +85,13 @@ unsigned getCMFloatControl(CmDenormMode DenormMode,
   if (DenormMode == Preserve)
     return CMFloatTypeDenormMaskMap::map(FloatType);
   return CM_DENORM_FTZ;
+}
+
+bool isSourceLanguageCM(llvm::Module *M) {
+  llvm::NamedMDNode *NamedMD = M->getNamedMetadata(kCMMetadata::GenXKernels);
+  if (!NamedMD)
+    return false;
+  return true;
 }
 
 } // namespace CMUtil

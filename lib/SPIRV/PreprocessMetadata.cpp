@@ -43,7 +43,6 @@
 #include "SPIRVMDBuilder.h"
 #include "SPIRVMDWalker.h"
 #include "CMUtil.h"
-#include "GenXKernelMDOps.h"
 
 #include "llvm/ADT/Triple.h"
 #include "llvm/IR/IRBuilder.h"
@@ -86,7 +85,7 @@ bool PreprocessMetadata::runOnModule(Module &Module) {
   M = &Module;
   Ctx = &M->getContext();
 
-  if (StringRef(M->getTargetTriple()).startswith("genx")) {
+  if (CMUtil::isSourceLanguageCM(M)) {
     LLVM_DEBUG(dbgs() << "Enter TransCMMD:\n");
     preprocessCMMetadata(M);
     LLVM_DEBUG(dbgs() << "After TransCMMD:\n" << *M);
@@ -105,58 +104,84 @@ bool PreprocessMetadata::runOnModule(Module &Module) {
 }
 
 void PreprocessMetadata::preprocessCMMetadata(Module *M) {
+  using namespace CMUtil;
+  NamedMDNode *KernelMDs = M->getNamedMetadata(kCMMetadata::GenXKernels);
+  if (!KernelMDs)
+    return;
+
   SPIRVMDBuilder B(*M);
   SPIRVMDWalker W(*M);
-  B.addNamedMD(kSPIRVMD::Source)
-      .addOp()
-      .add(spv::SourceLanguageCM)
-      .add(36) // version
-      .done();
-
   // Add entry points
   auto EP = B.addNamedMD(kSPIRVMD::EntryPoint);
   auto EM = B.addNamedMD(kSPIRVMD::ExecutionMode);
 
-  // Add execution mode
-  NamedMDNode *KernelMDs = M->getNamedMetadata(SPIR_MD_CM_KERNELS);
-  if (!KernelMDs)
-    return;
+  auto CMVersion = 1;
+  B.addNamedMD(kSPIRVMD::Source)
+      .addOp()
+      .add(spv::SourceLanguageCM)
+      .add(CMVersion)
+      .done();
+
 
   for (unsigned I = 0, E = KernelMDs->getNumOperands(); I < E; ++I) {
     MDNode *KernelMD = KernelMDs->getOperand(I);
     if (KernelMD->getNumOperands() == 0)
       continue;
-    Function *Kernel = mdconst::dyn_extract<Function>(KernelMD->getOperand(0));
+    Function *Kernel = mdconst::dyn_extract<Function>(
+        KernelMD->getOperand(CMUtil::KernelMDOp::FunctionRef));
 
-#ifdef __INTEL_EMBARGO__
     // Workaround for OCL 2.0 producer not using SPIR_KERNEL calling convention
 #if SPCV_RELAX_KERNEL_CALLING_CONV
     Kernel->setCallingConv(CallingConv::SPIR_KERNEL);
 #endif
-#endif // __INTEL_EMBARGO__
 
-    // get the slm-size info
-    if (KernelMD->getNumOperands() > genx::KernelMDOp::SLMSize) {
+    if (KernelMD->getNumOperands() > CMUtil::KernelMDOp::SLMSize) {
       if (auto VM = dyn_cast<ValueAsMetadata>(
-              KernelMD->getOperand(genx::KernelMDOp::SLMSize)))
+              KernelMD->getOperand(CMUtil::KernelMDOp::SLMSize)))
         if (auto V = dyn_cast<ConstantInt>(VM->getValue())) {
           auto SLMSize = V->getZExtValue();
           EM.addOp()
               .add(Kernel)
-              .add(spv::ExecutionModeCMKernelSharedLocalMemorySizeINTEL)
+              .add(spv::ExecutionModeSharedLocalMemorySizeINTEL)
               .add(SLMSize)
               .done();
         }
     }
 
-#ifdef __INTEL_EMBARGO__
+    if (KernelMD->getNumOperands() > CMUtil::KernelMDOp::NBarrierCnt) {
+      if (auto VM = dyn_cast<ValueAsMetadata>(
+              KernelMD->getOperand(CMUtil::KernelMDOp::NBarrierCnt)))
+        if (auto V = dyn_cast<ConstantInt>(VM->getValue())) {
+          auto NBarrierCnt = V->getZExtValue();
+          EM.addOp()
+              .add(Kernel)
+              .add(spv::ExecutionModeNamedBarrierCountINTEL)
+              .add(NBarrierCnt)
+              .done();
+        }
+    }
+
+    if (KernelMD->getNumOperands() > CMUtil::KernelMDOp::BarrierCnt) {
+      if (auto VM = dyn_cast<ValueAsMetadata>(
+              KernelMD->getOperand(CMUtil::KernelMDOp::BarrierCnt)))
+        if (auto V = dyn_cast<ConstantInt>(VM->getValue())) {
+          auto RegularBarrierCnt = V->getZExtValue();
+          EM.addOp()
+              .add(Kernel)
+              .add(spv::ExecutionModeRegularBarrierCountINTEL)
+              .add(RegularBarrierCnt)
+              .done();
+        }
+    }
+
     // Add CM float control execution modes
     // RoundMode and FloatMode are always same for all types in Cm
     // While Denorm could be different for double, float and half
     auto Attrs = Kernel->getAttributes();
-    if (Attrs.hasFnAttribute("CMFloatControl")) {
+    if (Attrs.hasFnAttribute(kCMMetadata::CMFloatControl)) {
       SPIRVWord Mode = 0;
-      Attrs.getAttribute(AttributeList::FunctionIndex, "CMFloatControl")
+      Attrs
+          .getAttribute(AttributeList::FunctionIndex, kCMMetadata::CMFloatControl)
           .getValueAsString()
           .getAsInteger(0, Mode);
       spv::ExecutionMode ExecRoundMode =
@@ -175,13 +200,11 @@ void PreprocessMetadata::preprocessCMMetadata(Module *M) {
                 .done();
           });
     }
-#endif // __INTEL_EMBARGO__
 
-#ifdef __INTEL_EMBARGO__
     // Add oclrt attribute if any.
-    if (Attrs.hasFnAttribute("oclrt")) {
+    if (Attrs.hasFnAttribute(kCMMetadata::OCLRuntime)) {
       SPIRVWord SIMDSize = 0;
-      Attrs.getAttribute(AttributeList::FunctionIndex, "oclrt")
+      Attrs.getAttribute(AttributeList::FunctionIndex, kCMMetadata::OCLRuntime)
           .getValueAsString()
           .getAsInteger(0, SIMDSize);
       EM.addOp()
@@ -190,7 +213,6 @@ void PreprocessMetadata::preprocessCMMetadata(Module *M) {
           .add(SIMDSize)
           .done();
     }
-#endif // __INTEL_EMBARGO__
   }
 }
 

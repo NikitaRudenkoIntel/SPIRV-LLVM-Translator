@@ -682,15 +682,11 @@ public:
          EMK == ExecutionModeDenormFlushToZero ||
          EMK == ExecutionModeSignedZeroInfNanPreserve ||
          EMK == ExecutionModeRoundingModeRTE ||
-#ifdef __INTEL_EMBARGO__
          EMK == ExecutionModeRoundingModeRTZ ||
          EMK == ExecutionModeRoundingModeRTPINTEL ||
          EMK == ExecutionModeRoundingModeRTNINTEL ||
          EMK == ExecutionModeFloatingPointModeALTINTEL ||
          EMK == ExecutionModeFloatingPointModeIEEEINTEL);
-#else
-         EMK == ExecutionModeRoundingModeRTZ);
-#endif // __INTEL_EMBARGO__
 #endif // !NDEBUG
     assert(isValid && "Duplicated execution mode");
     ExecModes.emplace(EMK, ExecMode);
