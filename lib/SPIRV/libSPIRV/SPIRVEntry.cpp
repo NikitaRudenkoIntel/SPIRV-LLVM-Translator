@@ -467,15 +467,13 @@ void SPIRVExecutionMode::decode(std::istream &I) {
   case ExecutionModeSignedZeroInfNanPreserve:
   case ExecutionModeRoundingModeRTE:
   case ExecutionModeRoundingModeRTZ:
-  case ExecutionModeCMKernelSharedLocalMemorySizeINTEL:
-#ifdef __INTEL_EMBARGO__
-  case ExecutionModeCMKernelNamedBarrierCountINTEL:
-  case ExecutionModeCMKernelRegularBarrierCountINTEL:
+  case ExecutionModeSharedLocalMemorySizeINTEL:
+  case ExecutionModeNamedBarrierCountINTEL:
+  case ExecutionModeRegularBarrierCountINTEL:
   case ExecutionModeRoundingModeRTPINTEL:
   case ExecutionModeRoundingModeRTNINTEL:
   case ExecutionModeFloatingPointModeALTINTEL:
   case ExecutionModeFloatingPointModeIEEEINTEL:
-#endif // __INTEL_EMBARGO__
   case ExecutionModeSubgroupSize:
     WordLiterals.resize(1);
     break;
