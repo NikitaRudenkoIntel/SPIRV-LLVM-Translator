@@ -67,6 +67,10 @@ llvm_update_compile_flags(SPIRVDLL)
 add_dependencies(SPIRVDLL intrinsics_gen LLVMAnalysis LLVMBitWriter LLVMCore LLVMSupport LLVMTransformUtils)
 target_link_libraries(SPIRVDLL LLVMAnalysis LLVMBitWriter LLVMCore LLVMSupport LLVMTransformUtils)
 
+if(NOT WIN32)
+  target_link_options(SPIRVDLL PRIVATE -Bsymbolic)
+endif()
+
 install(TARGETS SPIRVDLL
         EXPORT LLVMExports
         LIBRARY DESTINATION lib
