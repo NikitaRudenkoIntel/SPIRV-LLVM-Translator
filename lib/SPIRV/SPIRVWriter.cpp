@@ -104,6 +104,18 @@ static void foreachKernelArgMD(
   }
 }
 
+static SPIRVMemoryModelKind getMemoryModel(Module &M) {
+  NamedMDNode *MemoryModelMD = M.getNamedMetadata(kSPIRVMD::MemoryModel);
+  if (MemoryModelMD) {
+    auto model = static_cast<SPIRVMemoryModelKind>(
+        mdconst::dyn_extract<ConstantInt>(
+            MemoryModelMD->getOperand(0)->getOperand(1))
+            ->getZExtValue());
+    return model;
+  }
+  return SPIRVMemoryModelKind::MemoryModelMax;
+}
+
 LLVMToSPIRV::LLVMToSPIRV(SPIRVModule *SMod)
     : ModulePass(ID), M(nullptr), Ctx(nullptr), BM(SMod), SrcLang(0),
       SrcLangVer(0) {
@@ -753,13 +765,17 @@ SPIRVValue *LLVMToSPIRV::transValueWithoutDecoration(Value *V,
       BVarInit = transValue(Init, nullptr);
     }
 
+    SPIRVStorageClassKind StorageClass = SPIRSPIRVAddrSpaceMap::map(
+        static_cast<SPIRAddressSpace>(Ty->getAddressSpace()));
+    if (SrcLang == SourceLanguageCM &&
+        getMemoryModel(*M) == SPIRVMemoryModelKind::MemoryModelSimple)
+      StorageClass = StorageClassCrossWorkgroup;
+
     auto BVar = static_cast<SPIRVVariable *>(BM->addVariable(
         transType(Ty), GV->isConstant(), transLinkageType(GV),
         (Init && !isa<UndefValue>(Init)) ? transValue(Init, nullptr) : nullptr,
-        GV->getName(),
-        SPIRSPIRVAddrSpaceMap::map(
-            static_cast<SPIRAddressSpace>(Ty->getAddressSpace())),
-        nullptr));
+        GV->getName(), StorageClass, nullptr));
+
     mapValue(V, BVar);
     // Add volatile decorations.
     if (SrcLang == SourceLanguageCM) {
@@ -2022,13 +2038,9 @@ bool LLVMToSPIRV::transCMKernelMetadata() {
   if (!KernelMDs)
     return true;
 
-  NamedMDNode *MemoryModelMD = M->getNamedMetadata(kSPIRVMD::MemoryModel);
-  if (MemoryModelMD) {
-    unsigned model = mdconst::dyn_extract<ConstantInt>(
-                         MemoryModelMD->getOperand(0)->getOperand(1))
-                         ->getZExtValue();
-    BM->setMemoryModel(static_cast<SPIRVMemoryModelKind>(model));
-  }
+  auto MemoryModel = getMemoryModel(*M);
+  if (MemoryModel != SPIRVMemoryModelKind::MemoryModelMax)
+    BM->setMemoryModel(static_cast<SPIRVMemoryModelKind>(MemoryModel));
 
   for (unsigned I = 0, E = KernelMDs->getNumOperands(); I < E; ++I) {
     MDNode *KernelMD = KernelMDs->getOperand(I);
