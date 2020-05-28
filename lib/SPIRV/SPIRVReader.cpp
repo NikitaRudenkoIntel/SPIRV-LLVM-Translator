@@ -1493,21 +1493,18 @@ Value *SPIRVToLLVM::transValueWithoutDecoration(SPIRVValue *BV, Function *F,
       Initializer = dyn_cast<Constant>(UndefValue::get(Ty));
 
     SPIRVStorageClassKind BS = BVar->getStorageClass();
+    if (BS == StorageClassFunction && !Init) {
+      assert(BB && "Invalid BB");
+      return mapValue(BV, new AllocaInst(Ty, 0, BV->getName(), BB));
+    }
     auto AddrSpace = SPIRSPIRVAddrSpaceMap::rmap(BS);
 
     // Convert CM global addrspace and set initializer.
     if (BM->getSourceLanguage(nullptr) == SourceLanguageCM) {
       if (!Initializer)
         Initializer = UndefValue::get(Ty);
-      if (BM->getMemoryModel() == MemoryModelSimple) {
-        BS = StorageClassCrossWorkgroup;
+      if (BM->getMemoryModel() == MemoryModelSimple)
         AddrSpace = static_cast<SPIRAddressSpace>(0);
-      }
-    }
-
-    if (BS == StorageClassFunction && !Init) {
-      assert(BB && "Invalid BB");
-      return mapValue(BV, new AllocaInst(Ty, 0, BV->getName(), BB));
     }
 
     auto LVar = new GlobalVariable(*M, Ty, IsConst, LinkageTy, Initializer,
