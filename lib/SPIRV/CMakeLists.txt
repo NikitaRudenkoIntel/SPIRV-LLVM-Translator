@@ -1,4 +1,5 @@
-add_llvm_library(LLVMSPIRVLib
+set(SPIRV_SOURCES
+  VCExport.cpp
   LLVMToSPIRVDbgTran.cpp
   Mangler/FunctionDescriptor.cpp
   Mangler/Mangler.cpp
@@ -34,6 +35,10 @@ add_llvm_library(LLVMSPIRVLib
   libSPIRV/SPIRVStream.cpp
   libSPIRV/SPIRVType.cpp
   libSPIRV/SPIRVValue.cpp
+)
+
+add_llvm_library(LLVMSPIRVLib
+  ${SPIRV_SOURCES}
   LINK_COMPONENTS
     Analysis
     BitWriter
@@ -44,7 +49,41 @@ add_llvm_library(LLVMSPIRVLib
     intrinsics_gen
 )
 
+# --- mock: add_llvm_library(SPIRVDLL MODULE ---
+# unfortunately this do not work for llvm build system as is so some magic below
+
+add_library(SPIRVDLL MODULE
+  ${SPIRV_SOURCES}
+)
+
+llvm_update_compile_flags(SPIRVDLL)
+
+add_dependencies(SPIRVDLL intrinsics_gen LLVMAnalysis LLVMBitWriter LLVMCore LLVMSupport LLVMTransformUtils)
+target_link_libraries(SPIRVDLL LLVMAnalysis LLVMBitWriter LLVMCore LLVMSupport LLVMTransformUtils)
+
+install(TARGETS SPIRVDLL
+        EXPORT LLVMExports
+        LIBRARY DESTINATION lib
+        COMPONENT SPIRVDLL)
+
+add_llvm_install_targets(install-SPIRVDLL
+                         DEPENDS SPIRVDLL
+                         COMPONENT SPIRVDLL)
+
+set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS SPIRVDLL)
+
+# --- end mock ---
+
 target_include_directories(LLVMSPIRVLib
+  PRIVATE
+    ${LLVM_INCLUDE_DIRS}
+    ${LLVM_SPIRV_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/libSPIRV
+    ${CMAKE_CURRENT_SOURCE_DIR}/Mangler
+)
+
+target_include_directories(SPIRVDLL
   PRIVATE
     ${LLVM_INCLUDE_DIRS}
     ${LLVM_SPIRV_INCLUDE_DIRS}
