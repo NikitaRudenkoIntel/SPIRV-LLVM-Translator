@@ -476,6 +476,8 @@ enum Decoration {
   DecorationAliasedPointer = 5356,
   DecorationAliasedPointerEXT = 5356,
   DecorationSIMTCallINTEL = 5599,
+  DecorationFuncParamKindINTEL = 9624,
+  DecorationFuncParamDescINTEL = 9625,
   DecorationReferencedIndirectlyINTEL = 5602,
   DecorationSideEffectsINTEL = 5608,
   DecorationVectorComputeVariableINTEL = 5624,
