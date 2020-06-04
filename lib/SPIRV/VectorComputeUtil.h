@@ -117,6 +117,8 @@ const static char VCGlobalVariable[] = "VCGlobalVariable";
 const static char VCVolatile[] = "VCVolatile";
 const static char VCByteOffset[] = "VCByteOffset";
 const static char VCSIMTCall[] = "VCSIMTCall";
+const static char VCArgumentKind[] = "VCArgumentKind";
+const static char VCArgumentDesc[] = "VCArgumentDesc";
 } // namespace kVCMetadata
 
 ///////////////////////////////////////////////////////////////////////////////
