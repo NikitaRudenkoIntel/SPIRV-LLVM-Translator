@@ -8,17 +8,13 @@ set(LLVM_LINK_COMPONENTS
   TransformUtils
 )
 
-add_llvm_tool(llvm-spirv
+add_llvm_tool(llvm-spirv-vc
   llvm-spirv.cpp
   # llvm_setup_rpath messes with the rpath making llvm-spirv not executable from the build directory
   NO_INSTALL_RPATH
 )
 
-if (LLVM_SPIRV_BUILD_EXTERNAL)
-  target_link_libraries(llvm-spirv PRIVATE LLVMSPIRVLib)
-endif()
-
-target_include_directories(llvm-spirv
+target_include_directories(llvm-spirv-vc
   PRIVATE
     ${LLVM_INCLUDE_DIRS}
     ${LLVM_SPIRV_INCLUDE_DIRS}
