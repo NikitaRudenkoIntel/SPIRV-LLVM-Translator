@@ -82,6 +82,22 @@ add_llvm_install_targets(install-SPIRVDLL
 
 set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS SPIRVDLL)
 
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC" AND CMAKE_BUILD_TYPE MATCHES "Release")
+   target_compile_options(SPIRVDLL PRIVATE /Zi)
+
+   # Tell linker to include symbol data
+    set_target_properties(SPIRVDLL PROPERTIES
+        LINK_FLAGS "/INCREMENTAL:NO /DEBUG /OPT:REF /OPT:ICF"
+    )
+
+    # Set file name & location
+    set_target_properties(SPIRVDLL PROPERTIES
+        COMPILE_PDB_NAME SPIRVDLL
+        COMPILE_PDB_OUTPUT_DIR ${CMAKE_BINARY_DIR}
+    )
+endif()
+
 # --- end mock ---
 
 target_include_directories(LLVMSPIRVLib
