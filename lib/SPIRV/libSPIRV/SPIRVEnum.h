@@ -384,6 +384,7 @@ template <> inline void SPIRVMap<Decoration, SPIRVCapVec>::init() {
   ADD_VEC_INIT(DecorationSideEffectsINTEL, {CapabilityAsmINTEL});
   ADD_VEC_INIT(DecorationArgumentTypeINTEL, {CapabilityCMKernelINTEL});
   ADD_VEC_INIT(DecorationArgumentDescINTEL, {CapabilityCMKernelINTEL});
+  ADD_VEC_INIT(DecorationSIMTCallINTEL, {CapabilityCMKernelINTEL});
 }
 
 template <> inline void SPIRVMap<BuiltIn, SPIRVCapVec>::init() {

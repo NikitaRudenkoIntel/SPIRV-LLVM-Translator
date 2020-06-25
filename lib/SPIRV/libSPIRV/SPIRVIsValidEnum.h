@@ -410,6 +410,7 @@ inline bool isValid(spv::Decoration V) {
   case DecorationDoublepumpINTEL:
   case DecorationBankBitsINTEL:
   case DecorationReferencedIndirectlyINTEL:
+  case DecorationSIMTCallINTEL:
     return true;
   default:
     return false;

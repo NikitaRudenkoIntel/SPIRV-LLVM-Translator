@@ -3255,6 +3255,11 @@ bool SPIRVToLLVM::transCMKernelMetadata() {
     SPIRVFunction *BF = BM->getFunction(I);
     Function *F = static_cast<Function *>(getTranslatedValue(BF));
     assert(F && "Invalid translated function");
+
+    SPIRVWord SIMTMode = 0;
+    if (BF->hasDecorate(DecorationSIMTCallINTEL, 0, &SIMTMode))
+      F->addFnAttr(kCMMetadata::CMGenxSIMT, std::to_string(SIMTMode));
+
     if (F->getCallingConv() != CallingConv::SPIR_KERNEL)
       continue;
     // cmc-backend use this approach to mark kernel

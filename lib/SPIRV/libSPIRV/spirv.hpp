@@ -406,6 +406,7 @@ enum Decoration {
     DecorationPassthroughNV = 5250,
     DecorationViewportRelativeNV = 5252,
     DecorationSecondaryViewportRelativeNV = 5256,
+    DecorationSIMTCallINTEL = 5590, // TODO: change number
     DecorationReferencedIndirectlyINTEL = 5602,
     DecorationSideEffectsINTEL = 5608,
     DecorationUserSemantic = 5635,

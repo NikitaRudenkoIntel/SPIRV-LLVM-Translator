@@ -2348,6 +2348,16 @@ bool LLVMToSPIRV::transCMKernelMetadata() {
     assert(BF && "Kernel function should be translated first");
     assert(Kernel && isKernel(Kernel) &&
            "Invalid kernel calling convention or metadata");
+
+    auto Attrs = Kernel->getAttributes();
+    if (Attrs.hasFnAttribute(kCMMetadata::CMGenxSIMT)) {
+      SPIRVWord SIMTMode = 0;
+      Attrs.getAttribute(AttributeList::FunctionIndex, kCMMetadata::CMGenxSIMT)
+          .getValueAsString()
+          .getAsInteger(0, SIMTMode);
+      BF->addDecorate(DecorationSIMTCallINTEL, SIMTMode);
+    }
+
     // add kernel name
     StringRef KernelName =
         cast<MDString>(KernelMD->getOperand(CMUtil::KernelMDOp::Name).get())
