@@ -106,9 +106,7 @@ public:
   Value *transAsmINTEL(SPIRVAsmINTEL *BA);
   CallInst *transAsmCallINTEL(SPIRVAsmCallINTEL *BI, Function *F,
                               BasicBlock *BB);
-#ifdef __INTEL_EMBARGO__
   bool transCMKernelMetadata();
-#endif // __INTEL_EMBARGO__
   bool transNonTemporalMetadata(Instruction *I);
   bool transSourceLanguage();
   bool transSourceExtension();

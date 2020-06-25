@@ -1,11 +1,5 @@
-# __INTEL_EMBARGO_BEGIN__
-#   CMExport.h
-#   CMExport.cpp
-# __INTEL_EMBARGO_END__
 set(SPIRV_SOURCES
-#__INTEL_EMBARGO_BEGIN__
   CMExport.cpp
-#__INTEL_EMBARGO_END__
   LLVMToSPIRVDbgTran.cpp
   Mangler/FunctionDescriptor.cpp
   Mangler/Mangler.cpp

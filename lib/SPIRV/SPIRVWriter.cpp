@@ -2119,12 +2119,10 @@ bool LLVMToSPIRV::translate() {
     if (!transOCLKernelMetadata())
       return false;
   }
-#ifdef __INTEL_EMBARGO__
   else if (BM->getSourceLanguage(&Ver) == SourceLanguageCM) {
     if (!transCMKernelMetadata())
       return false;
   }
-#endif // __INTEL_EMBARGO__
 
   if (!transExecutionMode())
     return false;

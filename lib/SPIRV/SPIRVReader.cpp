@@ -3314,9 +3314,7 @@ bool SPIRVToLLVM::transCMKernelMetadata() {
       NBarrierCnt = EM->getLiterals()[0];
     KernelMD.push_back(
         ConstantAsMetadata::get(ConstantInt::get(I32Ty, NBarrierCnt)));
-#endif // __INTEL_EMBARGO__
 
-#ifdef __INTEL_EMBARGO__
     unsigned int RegularBarrierCnt = 0;
     if (auto EM =
             BF->getExecutionMode(ExecutionModeRegularBarrierCountINTEL))
@@ -3364,7 +3362,6 @@ bool SPIRVToLLVM::transCMKernelMetadata() {
     llvm::MDNode *Node = MDNode::get(F->getContext(), KernelMD);
     KernelMDs->addOperand(Node);
 
-#ifdef __INTEL_EMBARGO__
     // Generate metadata for oclrt
     if (auto *EM = BF->getExecutionMode(ExecutionModeSubgroupSize)) {
       auto SIMDSize = EM->getLiterals()[0];
@@ -3372,7 +3369,6 @@ bool SPIRVToLLVM::transCMKernelMetadata() {
           Attribute::get(*Context, kCMMetadata::OCLRuntime, std::to_string(SIMDSize));
       F->addAttribute(AttributeList::FunctionIndex, Attr);
     }
-#endif // __INTEL_EMBARGO__
   }
   return true;
 }

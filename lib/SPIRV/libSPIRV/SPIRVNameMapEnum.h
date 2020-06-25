@@ -364,11 +364,9 @@ template <> inline void SPIRVMap<Decoration, std::string>::init() {
   add(DecorationMergeINTEL, "MergeINTEL");
   add(DecorationBankBitsINTEL, "BankBitsINTEL");
   add(DecorationReferencedIndirectlyINTEL, "ReferencedIndirectlyINTEL");
-#ifdef __INTEL_EMBARGO__
   add(DecorationArgumentTypeINTEL, "ArgumentTypeINTEL");
   add(DecorationArgumentDescINTEL, "ArgumentDescINTEL");
   add(DecorationCMStackCallINTEL, "DecorationCMStackCallINTEL");
-#endif // __INTEL_EMBARGO__
   add(DecorationSIMTCallINTEL, "SIMTCallINTEL");
 }
 SPIRV_DEF_NAMEMAP(Decoration, SPIRVDecorationNameMap)
