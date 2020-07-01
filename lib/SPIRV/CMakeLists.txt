@@ -70,6 +70,12 @@ install(TARGETS SPIRVDLL
         LIBRARY DESTINATION lib
         COMPONENT SPIRVDLL)
 
+if(WIN32)
+  install(FILES $<TARGET_PDB_FILE:SPIRVDLL>
+          CONFIGURATIONS Debug RelWithDebInfo Release
+          DESTINATION lib)
+endif()
+
 add_llvm_install_targets(install-SPIRVDLL
                          DEPENDS SPIRVDLL
                          COMPONENT SPIRVDLL)
