@@ -420,23 +420,18 @@ Type *SPIRVToLLVM::transType(SPIRVType *T, bool IsClassMember) {
   case OpTypeStruct: {
     auto ST = static_cast<SPIRVTypeStruct *>(T);
     auto Name = ST->getName();
-    bool IsLiteral = Name.empty();
-    if (!IsLiteral) {
+    if (!Name.empty()) {
       if (auto OldST = M->getTypeByName(Name))
         OldST->setName("");
     } else {
       Name = "structtype";
     }
     auto *StructTy = StructType::create(*Context, Name);
+    mapType(ST, StructTy);
     SmallVector<Type *, 4> MT;
     for (size_t I = 0, E = ST->getMemberCount(); I != E; ++I)
       MT.push_back(transType(ST->getMemberType(I), true));
     StructTy->setBody(MT, ST->isPacked());
-    // If structure has no name then it should be literal
-    // so intrinsics will return correct literal type.
-    if (IsLiteral)
-      StructTy = StructType::get(*Context, StructTy->elements());
-    mapType(ST, StructTy);
     return StructTy;
   }
   case OpTypePipe: {
