@@ -143,6 +143,16 @@ inline bool isValid(spv::ExecutionMode V) {
   case ExecutionModeMaxWorkgroupSizeINTEL:
   case ExecutionModeMaxWorkDimINTEL:
   case ExecutionModeNumSIMDWorkitemsINTEL:
+  case ExecutionModeDenormPreserve:
+  case ExecutionModeDenormFlushToZero:
+  case ExecutionModeSignedZeroInfNanPreserve:
+  case ExecutionModeRoundingModeRTE:
+  case ExecutionModeRoundingModeRTZ:
+  case ExecutionModeRoundingModeRTPINTEL:
+  case ExecutionModeRoundingModeRTNINTEL:
+  case ExecutionModeFloatingPointModeALTINTEL:
+  case ExecutionModeFloatingPointModeIEEEINTEL:
+  case ExecutionModeSharedLocalMemorySizeINTEL:
     return true;
   default:
     return false;
@@ -410,7 +420,11 @@ inline bool isValid(spv::Decoration V) {
   case DecorationDoublepumpINTEL:
   case DecorationBankBitsINTEL:
   case DecorationReferencedIndirectlyINTEL:
-  case DecorationSIMTCallINTEL:
+  case DecorationVectorComputeFunctionINTEL:
+  case DecorationStackCallINTEL:
+  case DecorationVectorComputeVariableINTEL:
+  case DecorationGlobalVariableOffsetINTEL:
+  case DecorationFuncParamIOKind:
     return true;
   default:
     return false;
@@ -458,6 +472,11 @@ inline bool isValid(spv::BuiltIn V) {
   case BuiltInNumEnqueuedSubgroups:
   case BuiltInSubgroupId:
   case BuiltInSubgroupLocalInvocationId:
+  case BuiltInSubgroupEqMask:
+  case BuiltInSubgroupGeMask:
+  case BuiltInSubgroupGtMask:
+  case BuiltInSubgroupLeMask:
+  case BuiltInSubgroupLtMask:
   case BuiltInVertexIndex:
   case BuiltInInstanceIndex:
     return true;
@@ -562,6 +581,23 @@ inline bool isValid(spv::Capability V) {
   case CapabilitySubgroupDispatch:
   case CapabilityNamedBarrier:
   case CapabilityPipeStorage:
+  case CapabilityGroupNonUniform:
+  case CapabilityGroupNonUniformVote:
+  case CapabilityGroupNonUniformArithmetic:
+  case CapabilityGroupNonUniformBallot:
+  case CapabilityGroupNonUniformShuffle:
+  case CapabilityGroupNonUniformShuffleRelative:
+  case CapabilityGroupNonUniformClustered:
+  case CapabilityGroupNonUniformQuad:
+  case CapabilityDenormPreserve:
+  case CapabilityDenormFlushToZero:
+  case CapabilitySignedZeroInfNanPreserve:
+  case CapabilityRoundingModeRTE:
+  case CapabilityRoundingModeRTZ:
+  case CapabilityRoundToInfinityINTEL:
+  case CapabilityFloatingPointModeINTEL:
+  case CapabilityVectorComputeINTEL:
+  case CapabilityVectorAnyINTEL:
   case CapabilityFPGAMemoryAttributesINTEL:
   case CapabilityFPGALoopControlsINTEL:
   case CapabilityBlockingPipesINTEL:
