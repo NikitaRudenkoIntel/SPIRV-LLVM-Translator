@@ -119,22 +119,6 @@ template <> inline void SPIRVMap<ExecutionMode, std::string>::init() {
   add(ExecutionModeOutputTriangleStrip, "OutputTriangleStrip");
   add(ExecutionModeVecTypeHint, "VecTypeHint");
   add(ExecutionModeContractionOff, "ContractionOff");
-  add(ExecutionModeInitializer, "Initializer");
-  add(ExecutionModeFinalizer, "Finalizer");
-  add(ExecutionModeSubgroupSize, "SubgroupSize");
-  add(ExecutionModeSubgroupsPerWorkgroup, "SubgroupsPerWorkgroup");
-  add(ExecutionModeDenormPreserve, "DenormPreserve");
-  add(ExecutionModeDenormFlushToZero, "DenormFlushToZero");
-  add(ExecutionModeSignedZeroInfNanPreserve, "SignedZeroInfNanPreserve");
-  add(ExecutionModeRoundingModeRTE, "RoundingModeRTE");
-  add(ExecutionModeRoundingModeRTZ, "RoundingModeRTZ");
-  add(ExecutionModeSharedLocalMemorySizeINTEL, "SharedLocalMemorySizeINTEL");
-  add(ExecutionModeNamedBarrierCountINTEL, "NamedBarrierCountINTEL");
-  add(ExecutionModeRegularBarrierCountINTEL, "RegularBarrierCountINTEL");
-  add(ExecutionModeRoundingModeRTPINTEL, "RoundingModeRTPINTEL");
-  add(ExecutionModeRoundingModeRTNINTEL, "RoundingModeRTNINTEL");
-  add(ExecutionModeFloatingPointModeALTINTEL, "FloatingPointModeALTINTEL");
-  add(ExecutionModeFloatingPointModeIEEEINTEL, "FloatingPointModeIEEEINTEL");
 }
 SPIRV_DEF_NAMEMAP(ExecutionMode, SPIRVExecutionModeNameMap)
 
@@ -360,10 +344,6 @@ template <> inline void SPIRVMap<Decoration, std::string>::init() {
   add(DecorationSimpleDualPortINTEL, "SimpleDualPortINTEL");
   add(DecorationMergeINTEL, "MergeINTEL");
   add(DecorationReferencedIndirectlyINTEL, "ReferencedIndirectlyINTEL");
-  add(DecorationArgumentTypeINTEL, "ArgumentTypeINTEL");
-  add(DecorationArgumentDescINTEL, "ArgumentDescINTEL");
-  add(DecorationCMStackCallINTEL, "DecorationCMStackCallINTEL");
-  add(DecorationSIMTCallINTEL, "SIMTCallINTEL");
 }
 SPIRV_DEF_NAMEMAP(Decoration, SPIRVDecorationNameMap)
 
@@ -407,6 +387,11 @@ template <> inline void SPIRVMap<BuiltIn, std::string>::init() {
   add(BuiltInNumEnqueuedSubgroups, "BuiltInNumEnqueuedSubgroups");
   add(BuiltInSubgroupId, "BuiltInSubgroupId");
   add(BuiltInSubgroupLocalInvocationId, "BuiltInSubgroupLocalInvocationId");
+  add(BuiltInSubgroupEqMask, "BuiltInSubgroupEqMask");
+  add(BuiltInSubgroupGeMask, "BuiltInSubgroupGeMask");
+  add(BuiltInSubgroupGtMask, "BuiltInSubgroupGtMask");
+  add(BuiltInSubgroupLeMask, "BuiltInSubgroupLeMask");
+  add(BuiltInSubgroupLtMask, "BuiltInSubgroupLtMask");
   add(BuiltInVertexIndex, "BuiltInVertexIndex");
   add(BuiltInInstanceIndex, "BuiltInInstanceIndex");
 }
@@ -453,6 +438,7 @@ template <> inline void SPIRVMap<Capability, std::string>::init() {
   add(CapabilityImageReadWrite, "ImageReadWrite");
   add(CapabilityImageMipmap, "ImageMipmap");
   add(CapabilityPipes, "Pipes");
+  add(CapabilityPipeStorage, "PipeStorage");
   add(CapabilityGroups, "Groups");
   add(CapabilityDeviceEnqueue, "DeviceEnqueue");
   add(CapabilityLiteralSampler, "LiteralSampler");
@@ -497,46 +483,12 @@ template <> inline void SPIRVMap<Capability, std::string>::init() {
   add(CapabilityStorageImageWriteWithoutFormat,
       "StorageImageWriteWithoutFormat");
   add(CapabilityMultiViewport, "MultiViewport");
-  add(CapabilitySubgroupDispatch, "SubgroupDispatch");
-  add(CapabilityNamedBarrier, "NamedBarrier");
-  add(CapabilityPipeStorage, "PipeStorage");
-  add(CapabilitySubgroupBallotKHR, "SubgroupBallotKHR");
-  add(CapabilityDrawParameters, "DrawParameters");
-  add(CapabilitySubgroupVoteKHR, "SubgroupVoteKHR");
-  add(CapabilityStorageBuffer16BitAccess, "StorageBuffer16BitAccess");
-  add(CapabilityStorageUniformBufferBlock16,
-      "StorageUniformBufferBlock16");
-  add(CapabilityStorageUniform16, "StorageUniform16");
-  add(CapabilityUniformAndStorageBuffer16BitAccess,
-      "UniformAndStorageBuffer16BitAccess");
-  add(CapabilityStoragePushConstant16, "StoragePushConstant16");
-  add(CapabilityStorageInputOutput16, "StorageInputOutput16");
-  add(CapabilityDeviceGroup, "DeviceGroup");
-  add(CapabilityMultiView, "MultiView");
-  add(CapabilityVariablePointersStorageBuffer,
-      "VariablePointersStorageBuffer");
-  add(CapabilityVariablePointers, "VariablePointers");
-  add(CapabilityDenormPreserve, "DenormPreserve");
-  add(CapabilityDenormFlushToZero, "DenormFlushToZero");
-  add(CapabilitySignedZeroInfNanPreserve, "SignedZeroInfNanPreserve");
-  add(CapabilityRoundingModeRTE, "RoundingModeRTE");
-  add(CapabilityRoundingModeRTZ, "RoundingModeRTZ");
-  add(CapabilitySampleMaskOverrideCoverageNV,
-      "SampleMaskOverrideCoverageNV");
-  add(CapabilityGeometryShaderPassthroughNV,
-      "GeometryShaderPassthroughNV");
-  add(CapabilityShaderViewportIndexLayerNV,
-      "ShaderViewportIndexLayerNV");
-  add(CapabilityShaderViewportMaskNV, "ShaderViewportMaskNV");
-  add(CapabilityShaderStereoViewNV, "ShaderStereoViewNV");
-  add(CapabilityPerViewAttributesNV, "PerViewAttributesNV");
   add(CapabilitySubgroupShuffleINTEL, "SubgroupShuffleINTEL");
   add(CapabilitySubgroupBufferBlockIOINTEL, "SubgroupBufferBlockIOINTEL");
   add(CapabilitySubgroupImageBlockIOINTEL, "SubgroupImageBlockIOINTEL");
   add(CapabilitySubgroupImageMediaBlockIOINTEL,
       "SubgroupImageMediaBlockIOINTEL");
   add(CapabilityAsmINTEL, "AsmINTEL");
-  add(CapabilityCMKernelINTEL, "CMKernelINTEL");
   add(CapabilitySubgroupAvcMotionEstimationINTEL,
       "SubgroupAvcMotionEstimationINTEL");
   add(CapabilitySubgroupAvcMotionEstimationIntraINTEL,
@@ -550,6 +502,14 @@ template <> inline void SPIRVMap<Capability, std::string>::init() {
   add(CapabilityUnstructuredLoopControlsINTEL, "UnstructuredLoopControlsINTEL");
   add(CapabilityFunctionPointersINTEL, "FunctionPointersINTEL");
   add(CapabilityIndirectReferencesINTEL, "IndirectReferencesINTEL");
+  add(CapabilityGroupNonUniform, "GroupNonUniform");
+  add(CapabilityGroupNonUniformVote, "GroupNonUniformVote");
+  add(CapabilityGroupNonUniformArithmetic, "GroupNonUniformArithmetic");
+  add(CapabilityGroupNonUniformBallot, "GroupNonUniformBallot");
+  add(CapabilityGroupNonUniformShuffle, "GroupNonUniformShuffle");
+  add(CapabilityGroupNonUniformShuffleRelative,
+      "GroupNonUniformShuffleRelative");
+  add(CapabilityGroupNonUniformClustered, "GroupNonUniformClustered");
 }
 SPIRV_DEF_NAMEMAP(Capability, SPIRVCapabilityNameMap)
 

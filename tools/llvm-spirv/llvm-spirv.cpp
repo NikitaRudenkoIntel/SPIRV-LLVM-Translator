@@ -102,7 +102,9 @@ static cl::opt<VersionNumber> MaxSPIRVVersion(
     "spirv-max-version",
     cl::desc("Choose maximum SPIR-V version which can be emitted"),
     cl::values(clEnumValN(VersionNumber::SPIRV_1_0, "1.0", "SPIR-V 1.0"),
-               clEnumValN(VersionNumber::SPIRV_1_1, "1.1", "SPIR-V 1.1")),
+               clEnumValN(VersionNumber::SPIRV_1_1, "1.1", "SPIR-V 1.1"),
+               clEnumValN(VersionNumber::SPIRV_1_2, "1.2", "SPIR-V 1.2"),
+               clEnumValN(VersionNumber::SPIRV_1_3, "1.3", "SPIR-V 1.3")),
     cl::init(VersionNumber::MaximumVersion));
 
 static cl::list<std::string>
@@ -143,10 +145,27 @@ static cl::opt<std::string> SpecConst(
              "Supported types are: i1, i8, i16, i32, i64, f16, f32, f64.\n"),
     cl::value_desc("id1:type1:value1 id2:type2:value2 ..."));
 
+static cl::opt<bool>
+    SPIRVMemToReg("spirv-mem2reg", cl::init(false),
+                  cl::desc("LLVM/SPIR-V translation enable mem2reg"));
+
 static cl::opt<bool> SpecConstInfo(
     "spec-const-info",
     cl::desc("Display id of constants available for specializaion and their "
              "size in bytes"));
+
+static cl::opt<SPIRV::FPContractMode> FPCMode(
+    "spirv-fp-contract", cl::desc("Set FP Contraction mode:"),
+    cl::init(SPIRV::FPContractMode::On),
+    cl::values(
+        clEnumValN(SPIRV::FPContractMode::On, "on",
+                   "choose a mode according to presence of llvm.fmuladd "
+                   "intrinsic or `contract' flag on fp operations"),
+        clEnumValN(SPIRV::FPContractMode::Off, "off",
+                   "disable FP contraction for all entry points"),
+        clEnumValN(
+            SPIRV::FPContractMode::Fast, "fast",
+            "allow all operations to be contracted for all entry points")));
 
 static std::string removeExt(const std::string &FileName) {
   size_t Pos = FileName.find_last_of(".");
@@ -264,7 +283,7 @@ static int convertSPIRV() {
 }
 #endif
 
-static int regularizeLLVM() {
+static int regularizeLLVM(SPIRV::TranslatorOpts &Opts) {
   LLVMContext Context;
 
   std::unique_ptr<MemoryBuffer> MB =
@@ -282,7 +301,7 @@ static int regularizeLLVM() {
   }
 
   std::string Err;
-  if (!regularizeLlvmForSpirv(M.get(), Err)) {
+  if (!regularizeLlvmForSpirv(M.get(), Err, Opts)) {
     errs() << "Fails to save LLVM as SPIR-V: " << Err << '\n';
     return -1;
   }
@@ -364,7 +383,8 @@ bool parseSpecConstOpt(llvm::StringRef SpecConstStr,
                        SPIRV::TranslatorOpts &Opts) {
   std::ifstream IFS(InputFile, std::ios::binary);
   std::vector<SpecConstInfoTy> SpecConstInfo;
-  getSpecConstInfo(IFS, SpecConstInfo);
+  if (!getSpecConstInfo(IFS, SpecConstInfo))
+    return true;
 
   SmallVector<StringRef, 8> Split;
   SpecConstStr.split(Split, ' ', -1, false);
@@ -483,9 +503,14 @@ int main(int Ac, char **Av) {
   if (0 != Ret)
     return Ret;
 
-  SPIRV::TranslatorOpts Opts(MaxSPIRVVersion, ExtensionsStatus,
-                             SPIRVGenKernelArgNameMD);
+  SPIRV::TranslatorOpts Opts(MaxSPIRVVersion, ExtensionsStatus);
 
+  Opts.setFPContractMode(FPCMode);
+
+  if (SPIRVMemToReg)
+    Opts.setMemToRegEnabled(SPIRVMemToReg);
+  if (SPIRVGenKernelArgNameMD)
+    Opts.setGenKernelArgNameMDEnabled(SPIRVGenKernelArgNameMD);
   if (IsReverse && !SpecConst.empty()) {
     if (parseSpecConstOpt(SpecConst, Opts))
       return -1;
@@ -517,12 +542,15 @@ int main(int Ac, char **Av) {
     return convertSPIRVToLLVM(Opts);
 
   if (IsRegularization)
-    return regularizeLLVM();
+    return regularizeLLVM(Opts);
 
   if (SpecConstInfo) {
     std::ifstream IFS(InputFile, std::ios::binary);
     std::vector<SpecConstInfoTy> SpecConstInfo;
-    getSpecConstInfo(IFS, SpecConstInfo);
+    if (!getSpecConstInfo(IFS, SpecConstInfo)) {
+      std::cout << "Invalid SPIR-V binary";
+      return -1;
+    }
     std::cout << "Number of scalar specialization constants in the module = "
               << SpecConstInfo.size() << "\n";
     for (auto &SpecConst : SpecConstInfo)

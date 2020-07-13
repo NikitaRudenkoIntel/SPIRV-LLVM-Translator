@@ -662,40 +662,18 @@ protected:
 };
 
 class SPIRVComponentExecutionModes {
-  typedef std::multimap<SPIRVExecutionModeKind, SPIRVExecutionMode *>
+  typedef std::map<SPIRVExecutionModeKind, SPIRVExecutionMode *>
       SPIRVExecutionModeMap;
-  typedef std::pair<SPIRVExecutionModeMap::const_iterator,
-                    SPIRVExecutionModeMap::const_iterator>
-      SPIRVExecutionModeRange;
 
 public:
   void addExecutionMode(SPIRVExecutionMode *ExecMode) {
-    SPIRVExecutionModeKind EMK = ExecMode->getExecutionMode();
-    // There should not be more than 1 execution mode kind except the ones
-    // mentioned in SPV_KHR_float_controls.
-#ifndef NDEBUG
-    bool isValid =
-        (ExecModes.count(EMK) == 0 || EMK == ExecutionModeDenormPreserve ||
-         EMK == ExecutionModeDenormFlushToZero ||
-         EMK == ExecutionModeSignedZeroInfNanPreserve ||
-         EMK == ExecutionModeRoundingModeRTE ||
-         EMK == ExecutionModeRoundingModeRTZ ||
-         EMK == ExecutionModeRoundingModeRTPINTEL ||
-         EMK == ExecutionModeRoundingModeRTNINTEL ||
-         EMK == ExecutionModeFloatingPointModeALTINTEL ||
-         EMK == ExecutionModeFloatingPointModeIEEEINTEL);
-#endif // !NDEBUG
-    assert(isValid && "Duplicated execution mode");
-    ExecModes.emplace(EMK, ExecMode);
+    ExecModes[ExecMode->getExecutionMode()] = ExecMode;
   }
   SPIRVExecutionMode *getExecutionMode(SPIRVExecutionModeKind EMK) const {
     auto Loc = ExecModes.find(EMK);
     if (Loc == ExecModes.end())
       return nullptr;
     return Loc->second;
-  }
-  SPIRVExecutionModeRange getExecutionModeRange(SPIRVExecutionModeKind EMK) const {
-      return ExecModes.equal_range(EMK);
   }
 
 protected:
@@ -762,6 +740,15 @@ public:
 
   SPIRVWord getRequiredSPIRVVersion() const override {
     switch (Kind) {
+    case CapabilityGroupNonUniform:
+    case CapabilityGroupNonUniformVote:
+    case CapabilityGroupNonUniformArithmetic:
+    case CapabilityGroupNonUniformBallot:
+    case CapabilityGroupNonUniformShuffle:
+    case CapabilityGroupNonUniformShuffleRelative:
+    case CapabilityGroupNonUniformClustered:
+      return static_cast<SPIRVWord>(VersionNumber::SPIRV_1_3);
+
     case CapabilityNamedBarrier:
     case CapabilitySubgroupDispatch:
     case CapabilityPipeStorage:
