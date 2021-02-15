@@ -826,6 +826,8 @@ public:
       return getSet(SPV_INTEL_vector_compute);
     case CapabilityFastCompositeINTEL:
       return getSet(SPV_INTEL_fast_composite);
+    case CapabilityOptNoneINTEL:
+      return getSet(SPV_INTEL_optnone);
     default:
       return SPIRVExtSet();
     }

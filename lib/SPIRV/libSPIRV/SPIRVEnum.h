@@ -118,6 +118,7 @@ enum SPIRVExtensionKind {
   SPV_INTEL_float_controls2,
   SPV_INTEL_vector_compute,
   SPV_INTEL_fast_composite,
+  SPV_INTEL_optnone,
 };
 
 typedef std::set<SPIRVExtensionKind> SPIRVExtSet;
@@ -132,6 +133,7 @@ template <> inline void SPIRVMap<SPIRVExtensionKind, std::string>::init() {
   add(SPV_INTEL_float_controls2, "SPV_INTEL_float_controls2");
   add(SPV_INTEL_vector_compute, "SPV_INTEL_vector_compute");
   add(SPV_INTEL_fast_composite, "SPV_INTEL_fast_composite");
+  add(SPV_INTEL_optnone, "SPV_INTEL_optnone");
 };
 
 template <> inline void SPIRVMap<SPIRVExtInstSetKind, std::string>::init() {
